@@ -23,6 +23,7 @@ public class LeagueService {
 
     private final LeagueRepository leagueRepository;
     private final LeagueClubRepository leagueClubRepository;
+    private final com.tfg.esports.league.repository.MatchRepository matchRepository;
 
     private final com.tfg.esports.league.client.AuthServiceClient authServiceClient;
 
@@ -102,6 +103,10 @@ public class LeagueService {
                     throw new IllegalArgumentException("Esta liga es solo para amigos del creador.");
                 }
             }
+        }
+
+        if (matchRepository.countByLeagueId(leagueId) > 0) {
+            throw new IllegalArgumentException("No puedes unirte. El torneo de esta liga ya ha comenzado.");
         }
 
         if (leagueClubRepository.existsByIdLeagueIdAndIdClubId(leagueId, clubId)) {
