@@ -1,0 +1,38 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+# Configuración del servidor Eureka
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # Este servidor NO se registra a sí mismo en Eureka
+    register-with-eureka: false
+    # Este servidor NO consulta el registro para encontrar otros servicios
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # Tiempo de espera reducido para entornos de desarrollo
+    wait-time-in-ms-when-sync-empty: 0
+    # Desactivar protección de autopreservación en dev
+    enable-self-preservation: false
+
+# Exponer endpoint de salud para el healthcheck de Docker
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN

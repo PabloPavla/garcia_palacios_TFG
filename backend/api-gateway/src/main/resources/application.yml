@@ -1,0 +1,101 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # ============================================================
+  # Configuración de Spring Cloud Gateway
+  # ============================================================
+  cloud:
+    gateway:
+      # CORS global – permite peticiones desde el frontend React
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:5173"     # Vite dev server
+              - "http://localhost:3000"     # Alternativa CRA
+              - "https://*.vercel.app"      # Producción Vercel
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      # Rutas hacia cada microservicio (lb:// = Load Balanced via Eureka)
+      routes:
+        # ── Auth Service ─────────────────────────────────────
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+
+        # ── Club Service ──────────────────────────────────────
+        - id: club-service-clubs
+          uri: lb://CLUB-SERVICE
+          predicates:
+            - Path=/clubs/**
+
+        - id: club-service-players
+          uri: lb://CLUB-SERVICE
+          predicates:
+            - Path=/players/**
+
+        # ── Transfer Service ──────────────────────────────────
+        - id: transfer-service
+          uri: lb://TRANSFER-SERVICE
+          predicates:
+            - Path=/transfers/**
+
+        # ── League Service ────────────────────────────────────
+        - id: league-service-leagues
+          uri: lb://LEAGUE-SERVICE
+          predicates:
+            - Path=/leagues/**
+
+        - id: league-service-matches
+          uri: lb://LEAGUE-SERVICE
+          predicates:
+            - Path=/matches/**
+
+# ============================================================
+# Configuración Eureka Client
+# ============================================================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+# ============================================================
+# JWT – clave secreta compartida con auth-service
+# ============================================================
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+
+# ============================================================
+# Actuator – monitorización
+# ============================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, gateway
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.tfg.esports.gateway: DEBUG
