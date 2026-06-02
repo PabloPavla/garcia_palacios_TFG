@@ -17,7 +17,7 @@ $ErrorActionPreference = "Stop"
 # Cambia 'tfg' por tus iniciales si los nombres ya están en uso (deben ser únicos globales)
 $SUFFIX = Get-Random -Maximum 99999
 $RESOURCE_GROUP = "rg-clashmanager"
-$LOCATION = "westeurope"
+$LOCATION = "eastus"
 $ACR_NAME = "acrclashmanager$SUFFIX"
 $DB_SERVER_NAME = "mysql-clashmanager-$SUFFIX"
 $DB_ADMIN = "tfg_user"
@@ -33,9 +33,13 @@ Write-Host "Ubicación: $LOCATION"
 Write-Host "Registro de Contenedores: $ACR_NAME"
 Write-Host "Servidor MySQL: $DB_SERVER_NAME"
 
+Write-Host "`n[0/7] Registrando proveedores de Azure necesarios..." -ForegroundColor Yellow
+az provider register -n Microsoft.OperationalInsights --wait
+az provider register -n Microsoft.App --wait
+
 # 1. Crear Grupo de Recursos
 Write-Host "`n[1/7] Creando Grupo de Recursos..." -ForegroundColor Yellow
-az group create --name $RESOURCE_GROUP --location $LOCATION | Out-Null
+az group create --name $RESOURCE_GROUP --location $LOCATION
 
 # 2. Crear Base de Datos MySQL Flexible Server
 Write-Host "`n[2/7] Creando Servidor MySQL (Puede tardar de 5 a 10 minutos)..." -ForegroundColor Yellow
@@ -52,12 +56,12 @@ az mysql flexible-server create `
 
 # 3. Crear Azure Container Registry (ACR)
 Write-Host "`n[3/7] Creando Container Registry ($ACR_NAME)..." -ForegroundColor Yellow
-az acr create --resource-group $RESOURCE_GROUP --name $ACR_NAME --sku Basic --admin-enabled true | Out-Null
+az acr create --resource-group $RESOURCE_GROUP --name $ACR_NAME --sku Basic --admin-enabled true
 $ACR_LOGIN_SERVER = az acr show --name $ACR_NAME --query loginServer --output tsv
 
 # 4. Crear Azure Container Apps Environment
 Write-Host "`n[4/7] Creando Container Apps Environment..." -ForegroundColor Yellow
-az containerapp env create --name $ENV_NAME --resource-group $RESOURCE_GROUP --location $LOCATION | Out-Null
+az containerapp env create --name $ENV_NAME --resource-group $RESOURCE_GROUP --location $LOCATION
 
 # 5. Compilar Imágenes en la nube (ACR Build)
 Write-Host "`n[5/7] Compilando imágenes del Backend en la nube..." -ForegroundColor Yellow
@@ -65,7 +69,7 @@ Write-Host "`n[5/7] Compilando imágenes del Backend en la nube..." -ForegroundC
 $services = @("eureka-server", "api-gateway", "auth-service", "club-service", "league-service", "transfer-service")
 foreach ($svc in $services) {
     Write-Host "  -> Compilando $svc..."
-    az acr build --registry $ACR_NAME --image "$svc:latest" "backend/$svc" | Out-Null
+    az acr build --registry $ACR_NAME --image "$svc:latest" "./backend/$svc"
 }
 
 # 6. Desplegar Eureka Server primero
@@ -77,7 +81,7 @@ az containerapp create `
     --image "$ACR_LOGIN_SERVER/eureka-server:latest" `
     --target-port 8761 `
     --ingress internal `
-    --registry-server $ACR_LOGIN_SERVER | Out-Null
+    --registry-server $ACR_LOGIN_SERVER
 
 $EUREKA_FQDN = az containerapp show --name eureka-server --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv
 $EUREKA_URL = "http://$($EUREKA_FQDN)/eureka/"
@@ -88,7 +92,8 @@ $internalServices = @("auth-service", "club-service", "league-service", "transfe
 foreach ($svc in $internalServices) {
     Write-Host "  -> Desplegando $svc..."
     
-    $DB_URL = "jdbc:mysql://$DB_SERVER_NAME.mysql.database.azure.com:3306/$($svc.Replace('-service',''))_db?createDatabaseIfNotExist=true&useSSL=true&requireSSL=false"
+    # Hemos eliminado el símbolo ampersand (&) de la URL para evitar errores de parseo en CMD/PowerShell al usar az cli
+    $DB_URL = "jdbc:mysql://$DB_SERVER_NAME.mysql.database.azure.com:3306/$($svc.Replace('-service',''))_db?createDatabaseIfNotExist=true"
 
     az containerapp create `
         --name $svc `
@@ -98,7 +103,7 @@ foreach ($svc in $internalServices) {
         --target-port 8080 `
         --ingress internal `
         --registry-server $ACR_LOGIN_SERVER `
-        --env-vars "SPRING_DATASOURCE_URL=$DB_URL" "SPRING_DATASOURCE_USERNAME=$DB_ADMIN" "SPRING_DATASOURCE_PASSWORD=$DB_PASS" "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_URL" "JWT_SECRET=$JWT_SECRET" | Out-Null
+        --env-vars "SPRING_DATASOURCE_URL=$DB_URL" "SPRING_DATASOURCE_USERNAME=$DB_ADMIN" "SPRING_DATASOURCE_PASSWORD=$DB_PASS" "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_URL" "JWT_SECRET=$JWT_SECRET"
 }
 
 # Desplegar API Gateway (Público)
@@ -111,7 +116,7 @@ az containerapp create `
     --target-port 8080 `
     --ingress external `
     --registry-server $ACR_LOGIN_SERVER `
-    --env-vars "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_URL" "JWT_SECRET=$JWT_SECRET" | Out-Null
+    --env-vars "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_URL" "JWT_SECRET=$JWT_SECRET"
 
 $GATEWAY_FQDN = az containerapp show --name api-gateway --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv
 $GATEWAY_URL = "https://$GATEWAY_FQDN/"
@@ -120,7 +125,7 @@ Write-Host "  -> API Gateway URL Pública: $GATEWAY_URL" -ForegroundColor Green
 # 7. Compilar y Desplegar el Frontend React (Inyectando la URL del Gateway)
 Write-Host "`n[7/7] Compilando y Desplegando el Frontend React..." -ForegroundColor Yellow
 Write-Host "  -> Compilando frontend inyectando VITE_API_URL=$GATEWAY_URL..."
-az acr build --registry $ACR_NAME --image "frontend:latest" --build-arg "VITE_API_URL=$GATEWAY_URL" frontend | Out-Null
+az acr build --registry $ACR_NAME --image "frontend:latest" --build-arg "VITE_API_URL=$GATEWAY_URL" frontend
 
 Write-Host "  -> Desplegando frontend..."
 az containerapp create `
@@ -130,7 +135,7 @@ az containerapp create `
     --image "$ACR_LOGIN_SERVER/frontend:latest" `
     --target-port 80 `
     --ingress external `
-    --registry-server $ACR_LOGIN_SERVER | Out-Null
+    --registry-server $ACR_LOGIN_SERVER
 
 $FRONTEND_FQDN = az containerapp show --name frontend --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv
 $FRONTEND_URL = "https://$FRONTEND_FQDN"
