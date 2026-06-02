@@ -96,66 +96,45 @@ public class TransferController {
         return ResponseEntity.ok(transferService.getTransfersByPlayer(playerId));
     }
 
-    /**
-     * Crea una nueva oferta de transferencia por un jugador.
-     * El club comprador es el usuario autenticado (identificado por el Gateway).
-     *
-     * @param request datos de la oferta (playerId + transferFee)
-     * @param userId  ID del usuario autenticado (propietario del club comprador)
-     * @return 201 con la transferencia creada
-     */
     @PostMapping
     public ResponseEntity<TransferResponse> createTransfer(
-            @Valid @RequestBody TransferRequest request,
-            @RequestHeader("X-Auth-User-Id") Long userId) {
-        // El userId aquí representa al propietario del club comprador
-        // En una implementación completa, se consultaría al Club Service para obtener el clubId
+            @Valid @RequestBody TransferRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transferService.createTransfer(request, userId));
+                .body(transferService.createTransfer(request, request.getToClubId()));
     }
 
     /**
      * Acepta una transferencia pendiente.
-     * Solo el propietario del club vendedor (o admin) puede aceptarla.
-     *
-     * @param id     ID de la transferencia
-     * @param userId ID del usuario que acepta
-     * @return 200 con la transferencia actualizada
      */
     @PutMapping("/{id}/accept")
     public ResponseEntity<TransferResponse> acceptTransfer(
             @PathVariable Long id,
-            @RequestHeader("X-Auth-User-Id") Long userId) {
-        return ResponseEntity.ok(transferService.acceptTransfer(id, userId));
+            @RequestParam Long clubId) {
+        return ResponseEntity.ok(transferService.acceptTransfer(id, clubId));
     }
 
-    /**
-     * Rechaza una transferencia pendiente.
-     * Solo el propietario del club vendedor puede rechazarla.
-     *
-     * @param id     ID de la transferencia
-     * @param userId ID del usuario que rechaza
-     * @return 200 con la transferencia actualizada
-     */
     @PutMapping("/{id}/reject")
     public ResponseEntity<TransferResponse> rejectTransfer(
             @PathVariable Long id,
-            @RequestHeader("X-Auth-User-Id") Long userId) {
-        return ResponseEntity.ok(transferService.rejectTransfer(id, userId));
+            @RequestParam Long clubId) {
+        return ResponseEntity.ok(transferService.rejectTransfer(id, clubId));
     }
 
     /**
-     * Cancela una transferencia pendiente.
-     * Solo el propietario del club comprador puede cancelar su propia oferta.
-     *
-     * @param id     ID de la transferencia
-     * @param userId ID del usuario que cancela
-     * @return 200 con la transferencia actualizada
+     * Contraoferta una transferencia.
      */
+    @PutMapping("/{id}/counter")
+    public ResponseEntity<TransferResponse> counterOffer(
+            @PathVariable Long id,
+            @Valid @RequestBody TransferRequest request,
+            @RequestParam Long clubId) {
+        return ResponseEntity.ok(transferService.counterOffer(id, request, clubId));
+    }
+
     @PutMapping("/{id}/cancel")
     public ResponseEntity<TransferResponse> cancelTransfer(
             @PathVariable Long id,
-            @RequestHeader("X-Auth-User-Id") Long userId) {
-        return ResponseEntity.ok(transferService.cancelTransfer(id, userId));
+            @RequestParam Long clubId) {
+        return ResponseEntity.ok(transferService.cancelTransfer(id, clubId));
     }
 }

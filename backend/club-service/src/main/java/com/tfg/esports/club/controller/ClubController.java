@@ -148,4 +148,22 @@ public class ClubController {
     public ResponseEntity<Integer> getClubRating(@PathVariable Long id) {
         return ResponseEntity.ok(playerService.getClubRating(id));
     }
+
+    /**
+     * Deduce RP de un club. Llamado por Transfer Service.
+     */
+    @PutMapping("/{id}/rp/deduct")
+    public ResponseEntity<Void> deductRp(@PathVariable Long id, @RequestParam Integer amount) {
+        clubService.deductRp(id, amount);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Añade RP a un club. Llamado por Transfer Service.
+     */
+    @PutMapping("/{id}/rp/add")
+    public ResponseEntity<Void> addRp(@PathVariable Long id, @RequestParam Integer amount) {
+        clubService.addRp(id, amount);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -28,12 +28,9 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     List<Player> findByClubId(Long clubId);
 
     /**
-     * Obtiene todos los jugadores de una liga específica.
-     *
-     * @param leagueId ID de la liga
-     * @return lista de jugadores de la liga
+     * Obtiene todos los jugadores de una liga específica (paginado).
      */
-    List<Player> findByLeagueId(Long leagueId);
+    Page<Player> findByLeagueId(Long leagueId, Pageable pageable);
 
     /**
      * Cuenta cuántos jugadores hay en una liga.
@@ -86,5 +83,16 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
      * @return página de resultados
      */
     Page<Player> findByLeagueIdAndIsFreeAgentTrueAndSummonerNameContainingIgnoreCase(
+            Long leagueId, String name, Pageable pageable);
+
+    /**
+     * Busca TODOS los jugadores de una liga por rol.
+     */
+    Page<Player> findByLeagueIdAndLolRole(Long leagueId, LolRole role, Pageable pageable);
+
+    /**
+     * Busca TODOS los jugadores de una liga por nombre.
+     */
+    Page<Player> findByLeagueIdAndSummonerNameContainingIgnoreCase(
             Long leagueId, String name, Pageable pageable);
 }

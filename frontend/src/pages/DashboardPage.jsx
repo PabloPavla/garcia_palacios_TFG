@@ -135,10 +135,10 @@ const DashboardPage = () => {
                     </div>
                 </Col>
                 <Col md={4}>
-                    <div className="glass-card p-4 h-100 border-start border-4" style={{ borderColor: 'var(--brand-gold)' }}>
+                    <div className="glass-card p-4 h-100 border-start border-warning border-4">
                         <div className="d-flex justify-content-between">
                             <h6 className="text-secondary fw-bold mb-0">LIGAS ACTIVAS</h6>
-                            <i className="bi bi-trophy-fill fs-4" style={{ color: 'var(--brand-gold)' }}></i>
+                            <i className="bi bi-trophy-fill fs-4 text-warning"></i>
                         </div>
                         <h2 className="mt-3 fw-bold text-white mb-0">
                             {Object.values(clubLeagues).reduce((acc, leagues) => acc + leagues.length, 0)}
