@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import com.tfg.esports.league.client.AuthServiceClient;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -35,6 +36,9 @@ public class LeagueServiceTest {
 
     @Mock
     private MatchRepository matchRepository;
+
+    @Mock
+    private AuthServiceClient authServiceClient;
 
     @InjectMocks
     private LeagueService leagueService;
@@ -61,7 +65,7 @@ public class LeagueServiceTest {
         when(leagueRepository.save(any(League.class))).thenReturn(league);
 
         // Act
-        League response = leagueService.createLeague(request);
+        League response = leagueService.createLeague(request, 1L);
 
         // Assert
         assertNotNull(response);
@@ -77,7 +81,7 @@ public class LeagueServiceTest {
         when(leagueClubRepository.existsByIdLeagueIdAndIdClubId(1L, 10L)).thenReturn(false);
 
         // Act
-        leagueService.enrollClub(1L, 10L);
+        leagueService.enrollClub(1L, 10L, 1L);
 
         // Assert
         verify(leagueClubRepository, times(1)).save(any(LeagueClub.class));
@@ -91,7 +95,7 @@ public class LeagueServiceTest {
 
         // Act & Assert
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            leagueService.enrollClub(1L, 10L);
+            leagueService.enrollClub(1L, 10L, 1L);
         });
         assertTrue(exception.getMessage().contains("máximo de clubes"));
         verify(leagueClubRepository, never()).save(any(LeagueClub.class));

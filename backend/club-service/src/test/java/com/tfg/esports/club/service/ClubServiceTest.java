@@ -46,7 +46,7 @@ public class ClubServiceTest {
         request.setName("New Club");
         request.setAcronym("NEW");
 
-        when(clubRepository.findByOwnerId(10L)).thenReturn(Optional.empty());
+        when(clubRepository.findByOwnerId(10L)).thenReturn(java.util.Collections.emptyList());
         when(clubRepository.existsByName("New Club")).thenReturn(false);
         when(clubRepository.save(any(Club.class))).thenAnswer(invocation -> {
             Club c = invocation.getArgument(0);

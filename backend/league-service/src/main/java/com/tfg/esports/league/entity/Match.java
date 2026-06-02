@@ -57,4 +57,15 @@ public class Match {
     @Column(name = "wager_rp", nullable = false)
     @Builder.Default
     private Integer wagerRp = 500;
+
+    @Column(name = "home_wager_accepted")
+    @Builder.Default
+    private Boolean homeWagerAccepted = false;
+
+    @Column(name = "away_wager_accepted")
+    @Builder.Default
+    private Boolean awayWagerAccepted = false;
+
+    @Column(name = "tournament_round", length = 50)
+    private String tournamentRound;
 }

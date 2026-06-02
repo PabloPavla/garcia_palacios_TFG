@@ -89,6 +89,20 @@ public class PlayerService {
     }
 
     /**
+     * Calcula la valoración global de un club sumando las estadísticas de sus jugadores.
+     * Si no tiene suficientes jugadores, penaliza.
+     */
+    @Transactional(readOnly = true)
+    public Integer getClubRating(Long clubId) {
+        List<Player> players = playerRepository.findByClubId(clubId);
+        if (players.isEmpty()) {
+            return 50; // Base strength for empty club
+        }
+        int totalRating = players.stream().mapToInt(Player::getOverallRating).sum();
+        return totalRating / players.size(); // Average rating
+    }
+
+    /**
      * Obtiene el detalle de un jugador por su ID.
      *
      * @param id ID del jugador

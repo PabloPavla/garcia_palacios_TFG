@@ -36,18 +36,18 @@ const DashboardPage = () => {
                                 ]);
 
                                 // Find this club's position in standings
-                                const myPosition = standings.findIndex(s => s.clubId === club.id) + 1;
-                                const myStanding = standings.find(s => s.clubId === club.id);
+                                const myPosition = (standings || []).findIndex(s => s.clubId === club.id) + 1;
+                                const myStanding = (standings || []).find(s => s.clubId === club.id);
 
                                 // Get upcoming matches (SCHEDULED status) that involve this club
-                                const allMatches = matchesResponse.content || matchesResponse || [];
+                                const allMatches = matchesResponse?.content || matchesResponse || [];
                                 const upcomingMatches = allMatches
                                     .filter(m => m.status === 'SCHEDULED' && (m.homeClubId === club.id || m.awayClubId === club.id))
                                     .slice(0, 2);
 
                                 leagueDetails.push({
                                     league,
-                                    standings: standings.slice(0, 5), // Top 5 only
+                                    standings: (standings || []).slice(0, 5), // Top 5 only
                                     myPosition,
                                     myStanding,
                                     upcomingMatches,
