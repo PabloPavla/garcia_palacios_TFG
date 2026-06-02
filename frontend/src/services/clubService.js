@@ -26,8 +26,9 @@ const clubService = {
         return response.data;
     },
 
-    getFreeAgents: async (leagueId, page = 0, size = 20) => {
-        const response = await api.get(`/players?leagueId=${leagueId}&page=${page}&size=${size}`);
+    getFreeAgents: async (leagueId, page = 0, size = 12, role = '', sort = 'overallRating,desc') => {
+        const roleParam = role ? `&role=${role}` : '';
+        const response = await api.get(`/players/league/${leagueId}?page=${page}&size=${size}&sort=${sort}${roleParam}`);
         return response.data;
     },
     

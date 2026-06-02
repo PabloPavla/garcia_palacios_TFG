@@ -4,6 +4,7 @@ import com.tfg.esports.league.dto.MatchRequest;
 import com.tfg.esports.league.dto.MatchResponse;
 import com.tfg.esports.league.dto.MatchScoreRequest;
 import com.tfg.esports.league.service.MatchService;
+import com.tfg.esports.league.service.TournamentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import java.util.Map;
 public class MatchController {
 
     private final MatchService matchService;
+    private final TournamentService tournamentService;
 
     @GetMapping("/league/{leagueId}")
     public ResponseEntity<Page<MatchResponse>> getLeagueMatches(
@@ -68,5 +70,23 @@ public class MatchController {
         }
         matchService.cancelMatch(id);
         return ResponseEntity.ok(Map.of("message", "Partido cancelado"));
+    }
+
+    @PostMapping("/league/{leagueId}/tournament")
+    public ResponseEntity<?> generateTournament(
+            @PathVariable Long leagueId,
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        // En una app real podríamos comprobar si el userId es el creador de la liga
+        tournamentService.generateTournament(leagueId);
+        return ResponseEntity.ok(Map.of("message", "Torneo generado correctamente"));
+    }
+
+    @PostMapping("/{id}/wager/accept")
+    public ResponseEntity<?> acceptWager(
+            @PathVariable Long id,
+            @RequestParam Long clubId,
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        tournamentService.acceptWager(id, clubId);
+        return ResponseEntity.ok(Map.of("message", "Apuesta aceptada"));
     }
 }

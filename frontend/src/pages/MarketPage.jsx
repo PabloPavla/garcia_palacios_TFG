@@ -26,16 +26,20 @@ const MarketPage = () => {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
+    // Filters & Sorting
+    const [roleFilter, setRoleFilter] = useState('');
+    const [sortOrder, setSortOrder] = useState('overallRating,desc');
+
     // Modal estado
     const [showModal, setShowModal] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [offerFee, setOfferFee] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
-    const fetchFreeAgents = async (pageNumber = 0) => {
+    const fetchFreeAgents = async (pageNumber = 0, currentRole = roleFilter, currentSort = sortOrder) => {
         setLoading(true);
         try {
-            const response = await clubService.getFreeAgents(leagueId, pageNumber, 12);
+            const response = await clubService.getFreeAgents(leagueId, pageNumber, 12, currentRole, currentSort);
             setPlayers(response.content || []);
             setTotalPages(response.totalPages || 0);
             setPage(pageNumber);
@@ -47,8 +51,8 @@ const MarketPage = () => {
     };
 
     useEffect(() => {
-        fetchFreeAgents(0);
-    }, []);
+        fetchFreeAgents(0, roleFilter, sortOrder);
+    }, [leagueId, roleFilter, sortOrder]);
 
     const handleOpenModal = (player) => {
         setSelectedPlayer(player);
@@ -88,6 +92,32 @@ const MarketPage = () => {
                 </div>
             ) : (
                 <>
+                    <div className="d-flex justify-content-between mb-4 flex-wrap gap-3">
+                        <Form.Select 
+                            className="bg-dark text-white border-secondary w-auto" 
+                            value={roleFilter} 
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                        >
+                            <option value="">Todas las posiciones</option>
+                            <option value="TOP">TOP</option>
+                            <option value="JUNGLE">JUNGLE</option>
+                            <option value="MID">MID</option>
+                            <option value="ADC">ADC</option>
+                            <option value="SUPPORT">SUPPORT</option>
+                        </Form.Select>
+                        
+                        <Form.Select 
+                            className="bg-dark text-white border-secondary w-auto" 
+                            value={sortOrder} 
+                            onChange={(e) => setSortOrder(e.target.value)}
+                        >
+                            <option value="overallRating,desc">Mayor Winrate</option>
+                            <option value="overallRating,asc">Menor Winrate</option>
+                            <option value="priceRp,desc">Mayor Precio</option>
+                            <option value="priceRp,asc">Menor Precio</option>
+                        </Form.Select>
+                    </div>
+
                     <Row className="g-4">
                         {players.map(player => (
                             <Col lg={3} md={4} sm={6} key={player.id}>
@@ -97,7 +127,7 @@ const MarketPage = () => {
                                             <Badge bg={getRoleColor(player.lolRole)} className="px-2 py-1">
                                                 {player.lolRole}
                                             </Badge>
-                                            <span className="fw-bold fs-5 text-warning">{player.overallRating} <i className="bi bi-star-fill small"></i></span>
+                                            <span className="fw-bold fs-5 text-warning">{player.overallRating}% Winrate</span>
                                         </div>
                                         <Card.Title className="fw-bold fs-4 text-truncate">{player.summonerName}</Card.Title>
                                         <Card.Text className="text-secondary small mb-3 flex-grow-1">

@@ -177,10 +177,15 @@ const ProfilePage = () => {
                         
                         {/* Header con foto de perfil */}
                         <div className="bg-dark bg-opacity-75 p-4 text-center border-bottom border-primary border-2">
-                            <div className="mb-3 position-relative d-inline-block">
-                                {user?.profilePictureUrl ? (
+                            <div className="mb-3 position-relative d-inline-block" style={{ cursor: 'pointer' }} onClick={() => {
+                                const newUrl = window.prompt("Introduce la URL de tu nueva foto de perfil:", formData.profilePictureUrl);
+                                if (newUrl !== null) {
+                                    setFormData(prev => ({ ...prev, profilePictureUrl: newUrl }));
+                                }
+                            }} title="Haz clic para cambiar tu foto">
+                                {formData.profilePictureUrl || user?.profilePictureUrl ? (
                                     <img 
-                                        src={user.profilePictureUrl} 
+                                        src={formData.profilePictureUrl || user?.profilePictureUrl} 
                                         alt="Profile" 
                                         className="rounded-circle border border-primary border-3"
                                         style={{ width: '120px', height: '120px', objectFit: 'cover' }}
@@ -261,7 +266,7 @@ const ProfilePage = () => {
                                             />
                                         </Form.Group>
 
-                                        <Form.Group className="mb-4" controlId="formProfilePictureUrl">
+                                        <Form.Group className="mb-4" controlId="formProfilePictureUrl" style={{ display: 'none' }}>
                                             <Form.Label className="text-light">URL Foto de Perfil</Form.Label>
                                             <Form.Control
                                                 type="url"

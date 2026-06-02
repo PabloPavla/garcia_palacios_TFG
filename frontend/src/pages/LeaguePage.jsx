@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Container, Table, Spinner, Alert, Button, Modal, Form } from 'react-bootstrap';
+import { Container, Table, Spinner, Alert, Button, Modal, Form, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import leagueService from '../services/leagueService';
 import clubService from '../services/clubService';
+import TournamentBracket from '../components/TournamentBracket';
 
 const LeaguePage = () => {
     const { user } = useAuth();
@@ -11,13 +12,15 @@ const LeaguePage = () => {
     const [activeLeagueId, setActiveLeagueId] = useState(null);
     const [standings, setStandings] = useState([]);
     const [clubsCache, setClubsCache] = useState({});
+    const [clubsDataCache, setClubsDataCache] = useState({});
+    const [activeTab, setActiveTab] = useState('standings'); // 'standings' | 'tournament'
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
     // Modal Crear Liga
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newLeagueData, setNewLeagueData] = useState({ name: '', season: '2024', initialRp: 10000, maxClubs: 10, visibility: 'PUBLIC' });
+    const [newLeagueData, setNewLeagueData] = useState({ name: '', season: '2024', initialRp: 10000, maxClubs: 10, visibility: 'PUBLIC', matchWagerRp: 500 });
     
     // Modal Unirse a Liga
     const [showJoinModal, setShowJoinModal] = useState(false);
@@ -42,40 +45,47 @@ const LeaguePage = () => {
         loadLeagues();
     }, []);
 
-    useEffect(() => {
-        const loadStandings = async () => {
-            if (!activeLeagueId) return;
-            try {
-                setLoading(true);
-                const standingsData = await leagueService.getStandings(activeLeagueId);
-                setStandings(standingsData);
+    const fetchAndSetStandings = async () => {
+        if (!activeLeagueId) return;
+        try {
+            setLoading(true);
+            const standingsData = await leagueService.getStandings(activeLeagueId);
+            setStandings(standingsData);
 
-                const cCache = {};
-                for (let s of standingsData) {
-                    try {
-                        const c = await clubService.getClubById(s.clubId);
-                        cCache[s.clubId] = `[${c.acronym}] ${c.name}`;
-                    } catch (e) {
-                        cCache[s.clubId] = `Club Desconocido (${s.clubId})`;
-                    }
+            const cCache = {};
+            const cDataCache = {};
+            for (let s of standingsData) {
+                try {
+                    const c = await clubService.getClubById(s.clubId);
+                    cCache[s.clubId] = `[${c.acronym}] ${c.name}`;
+                    cDataCache[s.clubId] = c;
+                } catch (e) {
+                    cCache[s.clubId] = `Club Desconocido (${s.clubId})`;
                 }
-                setClubsCache(cCache);
-            } catch (err) {
-                setError('Error al cargar la clasificación.');
-            } finally {
-                setLoading(false);
             }
-        };
+            setClubsCache(cCache);
+            setClubsDataCache(cDataCache);
+        } catch (err) {
+            setError('Error al cargar la clasificación.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        loadStandings();
+    useEffect(() => {
+        fetchAndSetStandings();
     }, [activeLeagueId]);
 
     const handleCreateLeague = async (e) => {
         e.preventDefault();
         try {
+            // Calculate tomorrow's date to bypass the @Future validation constraint
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
             const newLeague = await leagueService.createLeague({
                 ...newLeagueData,
-                startDate: new Date().toISOString().split('T')[0]
+                startDate: tomorrow.toISOString().split('T')[0]
             });
             
             // Generate players for the new league
@@ -102,9 +112,8 @@ const LeaguePage = () => {
             await leagueService.enrollClub(activeLeagueId, newClub.id);
             
             setShowJoinModal(false);
-            // Reload standings
-            const standingsData = await leagueService.getStandings(activeLeagueId);
-            setStandings(standingsData);
+            // Reload standings and cache
+            await fetchAndSetStandings();
             alert('¡Te has unido a la liga con éxito!');
         } catch (err) {
             alert('Error al unirse a la liga: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
@@ -193,8 +202,30 @@ const LeaguePage = () => {
                         </div>
                     )}
 
-                    <div className="glass-card overflow-hidden">
-                        <Table hover responsive variant="dark" className="mb-0 align-middle text-center" style={{ backgroundColor: 'transparent' }}>
+                    {activeLeague && (
+                        <div className="d-flex mb-3 gap-2 border-bottom border-secondary pb-2 mt-4">
+                            <Button 
+                                variant={activeTab === 'standings' ? 'gold' : 'link'} 
+                                className={`text-decoration-none fw-bold ${activeTab === 'standings' ? 'text-dark bg-warning' : 'text-secondary'}`}
+                                onClick={() => setActiveTab('standings')}
+                            >
+                                <i className="bi bi-list-ol me-1"></i> Clasificación
+                            </Button>
+                            {standings.length >= 4 && (
+                                <Button 
+                                    variant={activeTab === 'tournament' ? 'gold' : 'link'} 
+                                    className={`text-decoration-none fw-bold ${activeTab === 'tournament' ? 'text-dark bg-warning' : 'text-secondary'}`}
+                                    onClick={() => setActiveTab('tournament')}
+                                >
+                                    <i className="bi bi-diagram-2 me-1"></i> Torneo
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === 'standings' ? (
+                        <div className="glass-card overflow-hidden">
+                            <Table hover responsive variant="dark" className="mb-0 align-middle text-center" style={{ backgroundColor: 'transparent' }}>
                             <thead style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
                                 <tr>
                                     <th className="py-3 text-secondary">POS</th>
@@ -238,7 +269,28 @@ const LeaguePage = () => {
                                 )}
                             </tbody>
                         </Table>
+                        {isCreator && standings.length >= 4 && (
+                            <div className="p-3 text-center border-top border-secondary" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                                <Button variant="outline-warning" onClick={async () => {
+                                    try {
+                                        await leagueService.generateTournament(activeLeagueId);
+                                        alert("Torneo generado con éxito");
+                                        setActiveTab('tournament');
+                                    } catch (e) {
+                                        alert("No se pudo generar el torneo: " + (e.response?.data?.message || e.message));
+                                    }
+                                }}>
+                                    <i className="bi bi-diagram-2 me-1"></i> Generar Torneo (Administrador)
+                                </Button>
+                            </div>
+                        )}
                     </div>
+                    ) : (
+                        <TournamentBracket 
+                            leagueId={activeLeagueId} 
+                            activeClubId={standings.find(s => clubsDataCache[s.clubId]?.ownerId === user?.id)?.clubId} 
+                        />
+                    )}
                 </>
             )}
 

@@ -16,8 +16,11 @@ const transferService = {
         return response.data;
     },
 
-    createTransferOffer: async (playerId, transferFee) => {
-        const response = await api.post('/transfers', { playerId, transferFee });
+    createTransferOffer: async (playerId, fee) => {
+        const response = await api.post(`/transfers`, {
+            playerId: playerId,
+            transferFeeRp: fee
+        });
         return response.data;
     },
 

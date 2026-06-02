@@ -24,6 +24,9 @@ public class MatchResponse {
     private Integer awayScore;
     private Integer wagerRp;
     private MatchStatus status;
+    private String tournamentRound;
+    private Boolean homeWagerAccepted;
+    private Boolean awayWagerAccepted;
 
     public static MatchResponse fromEntity(Match m) {
         return MatchResponse.builder()
@@ -36,6 +39,9 @@ public class MatchResponse {
                 .awayScore(m.getAwayScore())
                 .wagerRp(m.getWagerRp())
                 .status(m.getStatus())
+                .tournamentRound(m.getTournamentRound())
+                .homeWagerAccepted(m.getHomeWagerAccepted())
+                .awayWagerAccepted(m.getAwayWagerAccepted())
                 .build();
     }
 }

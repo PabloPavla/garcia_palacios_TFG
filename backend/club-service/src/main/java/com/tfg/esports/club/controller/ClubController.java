@@ -140,4 +140,12 @@ public class ClubController {
         playerService.generatePlayersForLeague(leagueId);
         return ResponseEntity.ok(Map.of("message", "Jugadores generados correctamente para la liga " + leagueId));
     }
+
+    /**
+     * Obtiene la valoración global de un club.
+     */
+    @GetMapping("/{id}/rating")
+    public ResponseEntity<Integer> getClubRating(@PathVariable Long id) {
+        return ResponseEntity.ok(playerService.getClubRating(id));
+    }
 }

@@ -16,6 +16,21 @@ const leagueService = {
         return response.data;
     },
 
+    getLeagueMatches: async (leagueId) => {
+        const response = await api.get(`/matches/league/${leagueId}?size=100`);
+        return response.data;
+    },
+
+    generateTournament: async (leagueId) => {
+        const response = await api.post(`/matches/league/${leagueId}/tournament`);
+        return response.data;
+    },
+
+    acceptWager: async (matchId, clubId) => {
+        const response = await api.post(`/matches/${matchId}/wager/accept?clubId=${clubId}`);
+        return response.data;
+    },
+
     getMatches: async (leagueId, page = 0) => {
         const response = await api.get(`/matches/league/${leagueId}?page=${page}`);
         return response.data;

@@ -26,7 +26,6 @@ const Navigation = () => {
                             <>
                                 <Nav.Link as={Link} to="/dashboard"><i className="bi bi-grid me-1"></i> Dashboard</Nav.Link>
                                 <Nav.Link as={Link} to="/my-club"><i className="bi bi-shield-fill me-1"></i> Mi Club</Nav.Link>
-                                <Nav.Link as={Link} to="/market"><i className="bi bi-shop me-1"></i> Mercado</Nav.Link>
                                 <Nav.Link as={Link} to="/transfers"><i className="bi bi-arrow-left-right me-1"></i> Transferencias</Nav.Link>
                             </>
                         )}
