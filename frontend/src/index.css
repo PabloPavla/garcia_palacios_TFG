@@ -1,0 +1,173 @@
+/* src/index.css */
+
+/* 1. Variables de diseño y tokens (Modo Oscuro Premium) */
+:root {
+  --app-bg: #0B0E14; /* Fondo principal oscuro profundo */
+  --app-surface: #151A22; /* Paneles y tarjetas */
+  --app-surface-hover: #1E2530;
+  
+  --brand-primary: #00E5FF; /* Cyan neón */
+  --brand-primary-hover: #00B8CC;
+  --brand-secondary: #7000FF; /* Púrpura eléctrico */
+  --brand-accent: #FF0055; /* Rosa/Rojo intenso */
+  --brand-gold: #C89B3C; /* Oro LoL */
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #9BA3AF;
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(21, 26, 34, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  
+  --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.15);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* 2. Base global */
+body {
+  background-color: var(--app-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Fondo con gradiente sutil */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(112, 0, 255, 0.03) 0%, rgba(11, 14, 20, 0) 50%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--brand-primary-hover);
+}
+
+/* 3. Glassmorphism Utilities */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow);
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+/* 4. Custom Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand-primary), #00A3FF);
+  border: none;
+  color: #000;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1.5rem;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-heading);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #00B8CC, #0082CC);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+  border: 1px solid var(--brand-primary);
+  color: var(--brand-primary);
+  background: transparent;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--brand-primary);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--brand-gold), #A37A2C);
+  border: none;
+  color: #000;
+  font-weight: 600;
+}
+
+.btn-gold:hover {
+  box-shadow: 0 0 15px rgba(200, 155, 60, 0.4);
+  color: #000;
+}
+
+/* 5. Inputs & Forms */
+.form-control {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 0.25rem rgba(0, 229, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.form-control::placeholder {
+  color: var(--text-secondary);
+}
+
+/* 6. Animaciones globales */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Navbar personalizada */
+.navbar-glass {
+  background: rgba(11, 14, 20, 0.8) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}
