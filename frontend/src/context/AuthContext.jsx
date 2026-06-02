@@ -125,6 +125,7 @@ export function AuthProvider({ children }) {
       username: data.username,
       email:    data.email,
       role:     data.role,
+      profilePictureUrl: data.profilePictureUrl,
     }))
     authService.setAuthHeader(data.accessToken)
     setToken(data.accessToken)
@@ -133,10 +134,22 @@ export function AuthProvider({ children }) {
       username: data.username,
       email:    data.email,
       role:     data.role,
+      profilePictureUrl: data.profilePictureUrl,
     })
   }
 
-  const value = { user, token, loading, login, register, logout }
+  /**
+   * Actualiza los datos del usuario en el contexto (sin re-autenticar).
+   * Se usa tras actualizar el perfil para refrescar la UI.
+   *
+   * @param {Object} updatedUser datos actualizados del usuario
+   */
+  const updateUser = useCallback((updatedUser) => {
+    setUser(updatedUser)
+    localStorage.setItem('user', JSON.stringify(updatedUser))
+  }, [])
+
+  const value = { user, token, loading, login, register, logout, updateUser }
 
   return (
     <AuthContext.Provider value={value}>

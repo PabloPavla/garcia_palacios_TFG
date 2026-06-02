@@ -37,4 +37,6 @@ public class LeagueRequest {
     @NotNull(message = "La apuesta por partido es obligatoria")
     @Min(value = 0, message = "La apuesta no puede ser negativa")
     private Integer matchWagerRp;
+
+    private String visibility = "PUBLIC";
 }

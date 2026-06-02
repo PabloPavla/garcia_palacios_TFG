@@ -11,8 +11,8 @@ const clubService = {
         return response.data;
     },
 
-    getMyClub: async () => {
-        const response = await api.get('/clubs/my-club');
+    getMyClubs: async () => {
+        const response = await api.get('/clubs/my-clubs');
         return response.data;
     },
 
@@ -33,6 +33,11 @@ const clubService = {
     
     getPlayerById: async (id) => {
         const response = await api.get(`/players/${id}`);
+        return response.data;
+    },
+
+    generatePlayersForLeague: async (leagueId) => {
+        const response = await api.post(`/clubs/generate-players?leagueId=${leagueId}`);
         return response.data;
     }
 };

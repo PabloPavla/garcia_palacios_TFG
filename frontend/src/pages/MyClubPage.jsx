@@ -26,26 +26,41 @@ const getRoleColor = (role) => {
 };
 
 const MyClubPage = () => {
-    const [club, setClub] = useState(null);
+    const [clubs, setClubs] = useState([]);
+    const [selectedClubId, setSelectedClubId] = useState(null);
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchClubData = async () => {
+        const fetchClubs = async () => {
             try {
-                const myClub = await clubService.getMyClub();
-                setClub(myClub);
-                const clubPlayers = await clubService.getClubPlayers(myClub.id);
-                setPlayers(clubPlayers);
+                const myClubs = await clubService.getMyClubs();
+                setClubs(myClubs);
+                if (myClubs.length > 0) {
+                    setSelectedClubId(myClubs[0].id);
+                }
             } catch (err) {
-                setError('No se pudo cargar la información de la plantilla.');
+                setError('No se pudieron cargar tus clubes.');
             } finally {
                 setLoading(false);
             }
         };
-        fetchClubData();
+        fetchClubs();
     }, []);
+
+    useEffect(() => {
+        const fetchPlayers = async () => {
+            if (!selectedClubId) return;
+            try {
+                const clubPlayers = await clubService.getClubPlayers(selectedClubId);
+                setPlayers(clubPlayers);
+            } catch (err) {
+                setError('No se pudo cargar la información de la plantilla.');
+            }
+        };
+        fetchPlayers();
+    }, [selectedClubId]);
 
     if (loading) {
         return (
@@ -59,25 +74,40 @@ const MyClubPage = () => {
         return <Container className="mt-5 pt-5"><Alert variant="danger">{error}</Alert></Container>;
     }
 
-    if (!club) {
+    if (clubs.length === 0) {
         return (
             <Container className="mt-5 pt-5 text-center">
-                <h3 className="text-secondary">Primero debes crear un club en el Dashboard.</h3>
+                <h3 className="text-secondary">Aún no tienes ningún club.</h3>
+                <p>Únete a una liga para crear tu primer club.</p>
             </Container>
         );
     }
 
+    const activeClub = clubs.find(c => c.id === Number(selectedClubId));
+
     return (
         <Container className="mt-4 pt-4 animate-fade-in">
-            <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary pb-3">
-                <div>
-                    <h1 className="fw-bold text-uppercase mb-0 text-white">[{club.acronym}] PLANTILLA</h1>
-                    <p className="text-secondary mb-0">Gestiona tus jugadores profesionales</p>
+            <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary pb-3 flex-wrap gap-3">
+                <div className="d-flex align-items-center gap-3">
+                    <div>
+                        <h1 className="fw-bold text-uppercase mb-0 text-white">[{activeClub?.acronym}] PLANTILLA</h1>
+                        <p className="text-secondary mb-0">Gestiona tus jugadores profesionales</p>
+                    </div>
+                    <select 
+                        className="form-select bg-dark text-white border-secondary ms-3" 
+                        value={selectedClubId} 
+                        onChange={(e) => setSelectedClubId(e.target.value)}
+                        style={{ width: 'auto' }}
+                    >
+                        {clubs.map(c => (
+                            <option key={c.id} value={c.id}>{c.name} ({c.acronym})</option>
+                        ))}
+                    </select>
                 </div>
                 <div className="text-end">
                     <h5 className="text-secondary mb-1">Riot Points Disponibles</h5>
                     <h3 className="text-primary fw-bold mb-0">
-                        {club.riotPoints} RP
+                        {activeClub?.riotPoints} RP
                     </h3>
                 </div>
             </div>

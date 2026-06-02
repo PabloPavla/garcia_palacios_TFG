@@ -64,6 +64,10 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean active = true;
 
+    /** URL de la foto de perfil del usuario */
+    @Column(name = "profile_picture_url", length = 255)
+    private String profilePictureUrl;
+
     /** Fecha y hora de creación de la cuenta (se asigna automáticamente) */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

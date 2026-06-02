@@ -155,6 +155,44 @@ public class AuthService {
     }
 
     /**
+     * Actualiza el perfil del usuario.
+     */
+    @Transactional
+    public AuthResponse updateProfile(String currentUsername, com.tfg.esports.auth.dto.ProfileUpdateRequest request) {
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (request.getUsername() != null && !request.getUsername().equals(currentUsername) && !request.getUsername().isBlank()) {
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new IllegalArgumentException("El nombre de usuario ya está en uso");
+            }
+            user.setUsername(request.getUsername());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail()) && !request.getEmail().isBlank()) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new IllegalArgumentException("El correo electrónico ya está registrado");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        if (request.getProfilePictureUrl() != null) {
+            user.setProfilePictureUrl(request.getProfilePictureUrl());
+        }
+
+        userRepository.save(user);
+
+        // Invalidar sesiones antiguas por seguridad al cambiar datos sensibles
+        refreshTokenRepository.deleteAllByUser(user);
+
+        return generateTokenPair(user);
+    }
+
+    /**
      * Genera un par de tokens (access token JWT + refresh token UUID)
      * y persiste el refresh token en la base de datos.
      *
@@ -181,6 +219,7 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .profilePictureUrl(user.getProfilePictureUrl())
                 .build();
     }
 }

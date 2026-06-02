@@ -33,4 +33,7 @@ public class AuthResponse {
 
     /** Rol del usuario: "ROLE_ADMIN" o "ROLE_OWNER" */
     private String role;
+
+    /** URL de la foto de perfil */
+    private String profilePictureUrl;
 }

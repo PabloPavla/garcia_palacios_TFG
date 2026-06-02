@@ -28,6 +28,22 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     List<Player> findByClubId(Long clubId);
 
     /**
+     * Obtiene todos los jugadores de una liga específica.
+     *
+     * @param leagueId ID de la liga
+     * @return lista de jugadores de la liga
+     */
+    List<Player> findByLeagueId(Long leagueId);
+
+    /**
+     * Cuenta cuántos jugadores hay en una liga.
+     *
+     * @param leagueId ID de la liga
+     * @return número de jugadores en la liga
+     */
+    long countByLeagueId(Long leagueId);
+
+    /**
      * Obtiene todos los agentes libres (sin club) de forma paginada para una liga específica.
      * Usado para el mercado de fichajes de una liga.
      *

@@ -24,6 +24,8 @@ public class LeagueService {
     private final LeagueRepository leagueRepository;
     private final LeagueClubRepository leagueClubRepository;
 
+    private final com.tfg.esports.league.client.AuthServiceClient authServiceClient;
+
     /**
      * Obtiene la lista de todas las ligas.
      *
@@ -49,7 +51,16 @@ public class LeagueService {
      * Crea una nueva liga con la configuración proporcionada.
      */
     @Transactional
-    public League createLeague(com.tfg.esports.league.dto.LeagueRequest request) {
+    public League createLeague(com.tfg.esports.league.dto.LeagueRequest request, Long creatorUserId) {
+        com.tfg.esports.league.entity.LeagueVisibility visibility;
+        try {
+            visibility = request.getVisibility() != null 
+                    ? com.tfg.esports.league.entity.LeagueVisibility.valueOf(request.getVisibility().toUpperCase())
+                    : com.tfg.esports.league.entity.LeagueVisibility.PUBLIC;
+        } catch (IllegalArgumentException e) {
+            visibility = com.tfg.esports.league.entity.LeagueVisibility.PUBLIC;
+        }
+
         League league = League.builder()
                 .name(request.getName())
                 .season(request.getSeason())
@@ -59,6 +70,8 @@ public class LeagueService {
                 .transferRules(request.getTransferRules())
                 .matchWagerRp(request.getMatchWagerRp())
                 .active(true)
+                .visibility(visibility)
+                .creatorUserId(creatorUserId)
                 .build();
         return leagueRepository.save(league);
     }
@@ -68,11 +81,28 @@ public class LeagueService {
      *
      * @param leagueId ID de la liga
      * @param clubId   ID del club (desde Club Service)
+     * @param userId   ID del usuario que intenta inscribir el club
      * @throws IllegalArgumentException si la liga no existe o ya está inscrito
      */
     @Transactional
-    public void enrollClub(Long leagueId, Long clubId) {
+    public void enrollClub(Long leagueId, Long clubId, Long userId) {
         League league = findLeagueOrThrow(leagueId);
+
+        // Validar visibilidad de la liga
+        if (league.getVisibility() == com.tfg.esports.league.entity.LeagueVisibility.PRIVATE) {
+            if (!userId.equals(league.getCreatorUserId())) {
+                throw new IllegalArgumentException("Esta liga es privada. Solo el creador puede inscribir clubes.");
+            }
+        } else if (league.getVisibility() == com.tfg.esports.league.entity.LeagueVisibility.FRIENDS_ONLY) {
+            if (!userId.equals(league.getCreatorUserId())) {
+                // Check if they are friends
+                java.util.Map<String, Boolean> response = authServiceClient.checkFriendship(league.getCreatorUserId(), userId);
+                Boolean areFriends = response != null ? response.get("areFriends") : false;
+                if (Boolean.FALSE.equals(areFriends)) {
+                    throw new IllegalArgumentException("Esta liga es solo para amigos del creador.");
+                }
+            }
+        }
 
         if (leagueClubRepository.existsByIdLeagueIdAndIdClubId(leagueId, clubId)) {
             throw new IllegalArgumentException("El club ya está inscrito en esta liga");
@@ -106,6 +136,20 @@ public class LeagueService {
         return leagueClubRepository.findStandingsByLeagueId(leagueId)
                 .stream()
                 .map(StandingResponse::fromEntity)
+                .toList();
+    }
+
+    /**
+     * Obtiene las ligas en las que un club está inscrito.
+     *
+     * @param clubId ID del club
+     * @return lista de ligas
+     */
+    @Transactional(readOnly = true)
+    public List<League> getLeaguesByClubId(Long clubId) {
+        return leagueClubRepository.findByIdClubId(clubId)
+                .stream()
+                .map(LeagueClub::getLeague)
                 .toList();
     }
 

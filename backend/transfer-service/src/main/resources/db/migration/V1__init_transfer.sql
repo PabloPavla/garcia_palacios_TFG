@@ -83,9 +83,9 @@ DELIMITER //
 CREATE PROCEDURE sp_club_transfer_stats(IN p_club_id BIGINT)
 BEGIN
     SELECT
-        COUNT(*) FILTER (WHERE status = 'ACCEPTED')  AS total_aceptadas,
-        COUNT(*) FILTER (WHERE status = 'REJECTED')  AS total_rechazadas,
-        COUNT(*) FILTER (WHERE status = 'PENDING')   AS total_pendientes,
+        SUM(CASE WHEN status = 'ACCEPTED' THEN 1 ELSE 0 END) AS total_aceptadas,
+        SUM(CASE WHEN status = 'REJECTED' THEN 1 ELSE 0 END) AS total_rechazadas,
+        SUM(CASE WHEN status = 'PENDING'  THEN 1 ELSE 0 END) AS total_pendientes,
         COALESCE(SUM(CASE WHEN status = 'ACCEPTED' THEN transfer_fee ELSE 0 END), 0) AS gasto_total
     FROM transfers
     WHERE to_club_id = p_club_id;

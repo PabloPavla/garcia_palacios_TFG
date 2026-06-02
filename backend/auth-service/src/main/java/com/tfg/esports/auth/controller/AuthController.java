@@ -106,4 +106,15 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> me(Principal principal) {
         return ResponseEntity.ok(Map.of("username", principal.getName()));
     }
+
+    /**
+     * Actualiza el perfil del usuario autenticado.
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<AuthResponse> updateProfile(
+            @Valid @RequestBody com.tfg.esports.auth.dto.ProfileUpdateRequest request,
+            Principal principal) {
+        AuthResponse response = authService.updateProfile(principal.getName(), request);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -42,27 +42,26 @@ public class LeagueController {
     public ResponseEntity<Map<String, String>> enrollClub(
             @PathVariable Long id,
             @RequestParam Long clubId,
-            @RequestHeader("X-Auth-Role") String role) {
+            @RequestHeader("X-Auth-User-Id") Long userId) {
 
-        if (!"ROLE_ADMIN".equals(role) && !"ROLE_OWNER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "No tienes permisos para inscribir clubes"));
-        }
-
-        leagueService.enrollClub(id, clubId);
+        leagueService.enrollClub(id, clubId, userId);
         return ResponseEntity.ok(Map.of("message", "Club inscrito correctamente"));
     }
 
     @PostMapping
     public ResponseEntity<League> createLeague(
             @RequestBody @jakarta.validation.Valid com.tfg.esports.league.dto.LeagueRequest request,
-            @RequestHeader("X-Auth-Role") String role) {
-        
-        if (!"ROLE_ADMIN".equals(role) && !"ROLE_OWNER".equals(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+            @RequestHeader("X-Auth-User-Id") Long userId) {
 
-        League league = leagueService.createLeague(request);
+        League league = leagueService.createLeague(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(league);
+    }
+
+    /**
+     * Obtiene las ligas en las que un club está inscrito.
+     */
+    @GetMapping("/by-club")
+    public ResponseEntity<List<League>> getLeaguesByClub(@RequestParam Long clubId) {
+        return ResponseEntity.ok(leagueService.getLeaguesByClubId(clubId));
     }
 }
