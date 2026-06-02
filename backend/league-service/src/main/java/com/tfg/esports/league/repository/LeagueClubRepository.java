@@ -41,4 +41,6 @@ public interface LeagueClubRepository extends JpaRepository<LeagueClub, LeagueCl
      * @return true si ya está inscrito
      */
     boolean existsByIdLeagueIdAndIdClubId(Long leagueId, Long clubId);
+
+    long countByIdLeagueId(Long leagueId);
 }

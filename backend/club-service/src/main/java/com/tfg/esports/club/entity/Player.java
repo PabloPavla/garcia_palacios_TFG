@@ -59,12 +59,18 @@ public class Player {
     private LolRole lolRole;
 
     /**
-     * Valor de mercado actual del jugador en euros.
-     * No puede ser negativo (constraint {@code chk_market_value} en BD).
+     * Valor de mercado estimado en Riot Points.
+     * No puede ser negativo (constraint {@code chk_price_rp} en BD).
      */
-    @Column(name = "market_value", nullable = false, precision = 15, scale = 2)
+    @Column(name = "price_rp", nullable = false)
     @Builder.Default
-    private BigDecimal marketValue = new BigDecimal("50000.00");
+    private Integer priceRp = 500;
+
+    /**
+     * ID de la liga a la que pertenece este jugador (aislamiento de mercado).
+     */
+    @Column(name = "league_id", nullable = false)
+    private Long leagueId;
 
     /**
      * Club al que pertenece el jugador actualmente.

@@ -51,12 +51,11 @@ public class Club {
     private String logoUrl;
 
     /**
-     * Presupuesto disponible para fichajes.
-     * No puede ser negativo (constraint {@code chk_budget} en BD).
+     * Presupuesto actual del club en Riot Points.
+     * No puede ser negativo (constraint {@code chk_riot_points} en BD).
      */
-    @Column(nullable = false, precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal budget = new BigDecimal("1000000.00");
+    @Column(name = "riot_points", nullable = false)
+    private Integer riotPoints = 10000;
 
     /**
      * ID del propietario del club (referencia lógica a {@code auth_db.users}).

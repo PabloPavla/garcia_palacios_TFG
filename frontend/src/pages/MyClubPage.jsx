@@ -75,9 +75,9 @@ const MyClubPage = () => {
                     <p className="text-secondary mb-0">Gestiona tus jugadores profesionales</p>
                 </div>
                 <div className="text-end">
-                    <h5 className="text-secondary mb-1">Presupuesto Disponible</h5>
+                    <h5 className="text-secondary mb-1">Riot Points Disponibles</h5>
                     <h3 className="text-primary fw-bold mb-0">
-                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(club.budget)}
+                        {club.riotPoints} RP
                     </h3>
                 </div>
             </div>
@@ -126,9 +126,9 @@ const MyClubPage = () => {
                                     </Row>
                                     
                                     <div className="mt-4 pt-3 border-top border-secondary opacity-75 d-flex justify-content-between align-items-center">
-                                        <span className="text-secondary small">Valor de mercado</span>
+                                        <span className="text-secondary small">Precio de mercado</span>
                                         <span className="fw-bold text-gold" style={{ color: 'var(--brand-gold)' }}>
-                                            {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(player.marketValue)}
+                                            {player.priceRp} RP
                                         </span>
                                     </div>
                                 </Card.Body>

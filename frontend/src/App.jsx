@@ -26,8 +26,8 @@ function App() {
             {/* Rutas Públicas */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/league" element={<LeaguePage />} />
-            <Route path="/league/matches" element={<MatchesPage />} />
+            <Route path="/leagues" element={<LeaguePage />} />
+            <Route path="/leagues/:leagueId/matches" element={<MatchesPage />} />
             <Route path="/players/:id" element={<PlayerPage />} />
 
             {/* Redirigir raíz a dashboard o login */}
@@ -37,7 +37,7 @@ function App() {
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/my-club" element={<MyClubPage />} />
-              <Route path="/market" element={<MarketPage />} />
+              <Route path="/market/:leagueId" element={<MarketPage />} />
               <Route path="/transfers" element={<TransfersPage />} />
             </Route>
 

@@ -96,7 +96,7 @@ const TransfersPage = () => {
                                         {playersCache[transfer.playerId] || 'Cargando...'}
                                     </Card.Title>
                                     <p className="text-info mb-4 fs-5 fw-bold">
-                                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(transfer.transferFee)}
+                                        {transfer.transferFeeRp} RP
                                     </p>
                                     
                                     <div className="text-secondary small border-top border-secondary pt-3 mt-3">

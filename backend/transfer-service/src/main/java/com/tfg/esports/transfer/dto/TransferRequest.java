@@ -20,11 +20,8 @@ public class TransferRequest {
     @NotNull(message = "El ID del jugador es obligatorio")
     private Long playerId;
 
-    /**
-     * Cantidad ofrecida por el jugador en euros.
-     * Puede ser 0 si el jugador es agente libre.
-     */
-    @NotNull(message = "La cantidad ofrecida es obligatoria")
-    @DecimalMin(value = "0.0", message = "La oferta no puede ser negativa")
-    private BigDecimal transferFee;
+    /** Oferta económica en Riot Points */
+    @NotNull(message = "La oferta económica es obligatoria")
+    @Min(value = 0, message = "La oferta no puede ser negativa")
+    private Integer transferFeeRp;
 }

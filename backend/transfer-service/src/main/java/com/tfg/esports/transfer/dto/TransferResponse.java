@@ -21,7 +21,7 @@ public class TransferResponse {
     private Long           playerId;
     private Long           fromClubId;
     private Long           toClubId;
-    private BigDecimal     transferFee;
+    private Integer        transferFeeRp;
     private TransferStatus status;
     private LocalDateTime  offeredAt;
     private LocalDateTime  resolvedAt;
@@ -38,7 +38,7 @@ public class TransferResponse {
                 .playerId(t.getPlayerId())
                 .fromClubId(t.getFromClubId())
                 .toClubId(t.getToClubId())
-                .transferFee(t.getTransferFee())
+                .transferFeeRp(t.getTransferFeeRp())
                 .status(t.getStatus())
                 .offeredAt(t.getOfferedAt())
                 .resolvedAt(t.getResolvedAt())

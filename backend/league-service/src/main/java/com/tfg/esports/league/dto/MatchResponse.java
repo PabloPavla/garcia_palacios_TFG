@@ -22,6 +22,7 @@ public class MatchResponse {
     private LocalDateTime matchDate;
     private Integer homeScore;
     private Integer awayScore;
+    private Integer wagerRp;
     private MatchStatus status;
 
     public static MatchResponse fromEntity(Match m) {
@@ -33,6 +34,7 @@ public class MatchResponse {
                 .matchDate(m.getMatchDate())
                 .homeScore(m.getHomeScore())
                 .awayScore(m.getAwayScore())
+                .wagerRp(m.getWagerRp())
                 .status(m.getStatus())
                 .build();
     }

@@ -27,6 +27,7 @@ public class MatchService {
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
     private final LeagueClubRepository leagueClubRepository;
+    private final com.tfg.esports.league.client.ClubClient clubClient;
 
     /**
      * Obtiene todos los partidos de una liga paginados.
@@ -71,8 +72,13 @@ public class MatchService {
                 .homeClubId(request.getHomeClubId())
                 .awayClubId(request.getAwayClubId())
                 .matchDate(request.getMatchDate())
+                .wagerRp(league.getMatchWagerRp())
                 .status(MatchStatus.SCHEDULED)
                 .build();
+
+        // Descontar wager de ambos equipos
+        clubClient.updateRiotPoints(request.getHomeClubId(), -league.getMatchWagerRp());
+        clubClient.updateRiotPoints(request.getAwayClubId(), -league.getMatchWagerRp());
 
         return MatchResponse.fromEntity(matchRepository.save(match));
     }
@@ -99,7 +105,21 @@ public class MatchService {
         match.setStatus(MatchStatus.COMPLETED);
 
         // Al guardar, el trigger 'trg_update_standings_after_match' actualizará la clasificación
-        return MatchResponse.fromEntity(matchRepository.save(match));
+        Match savedMatch = matchRepository.save(match);
+
+        // Lógica de apuestas y RP
+        int rewardRp = match.getWagerRp() * 2;
+        if (match.getHomeScore() > match.getAwayScore()) {
+            clubClient.updateRiotPoints(match.getHomeClubId(), rewardRp);
+        } else if (match.getAwayScore() > match.getHomeScore()) {
+            clubClient.updateRiotPoints(match.getAwayClubId(), rewardRp);
+        } else {
+            // Empate: Se devuelve el wager a ambos
+            clubClient.updateRiotPoints(match.getHomeClubId(), match.getWagerRp());
+            clubClient.updateRiotPoints(match.getAwayClubId(), match.getWagerRp());
+        }
+
+        return MatchResponse.fromEntity(savedMatch);
     }
 
     /**

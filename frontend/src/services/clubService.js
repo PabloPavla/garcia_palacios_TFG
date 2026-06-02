@@ -26,8 +26,8 @@ const clubService = {
         return response.data;
     },
 
-    getFreeAgents: async (page = 0, size = 20) => {
-        const response = await api.get(`/players?page=${page}&size=${size}`);
+    getFreeAgents: async (leagueId, page = 0, size = 20) => {
+        const response = await api.get(`/players?leagueId=${leagueId}&page=${page}&size=${size}`);
         return response.data;
     },
     

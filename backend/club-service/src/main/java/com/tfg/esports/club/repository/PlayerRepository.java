@@ -28,23 +28,25 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     List<Player> findByClubId(Long clubId);
 
     /**
-     * Obtiene todos los agentes libres (sin club) de forma paginada.
-     * Usado para el mercado de fichajes.
+     * Obtiene todos los agentes libres (sin club) de forma paginada para una liga específica.
+     * Usado para el mercado de fichajes de una liga.
      *
+     * @param leagueId ID de la liga
      * @param pageable configuración de paginación y ordenación
      * @return página de jugadores libres
      */
-    Page<Player> findByIsFreeAgentTrue(Pageable pageable);
+    Page<Player> findByLeagueIdAndIsFreeAgentTrue(Long leagueId, Pageable pageable);
 
     /**
-     * Filtra agentes libres por rol específico.
+     * Filtra agentes libres por rol específico en una liga.
      * Útil para buscar jugadores de una posición concreta en el mercado.
      *
+     * @param leagueId ID de la liga
      * @param role    rol de LoL a filtrar
      * @param pageable configuración de paginación
      * @return página de jugadores libres con ese rol
      */
-    Page<Player> findByIsFreeAgentTrueAndLolRole(LolRole role, Pageable pageable);
+    Page<Player> findByLeagueIdAndIsFreeAgentTrueAndLolRole(Long leagueId, LolRole role, Pageable pageable);
 
     /**
      * Cuenta cuántos jugadores de un rol concreto tiene un club.
@@ -59,13 +61,14 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     long countByClubIdAndLolRole(Long clubId, LolRole role);
 
     /**
-     * Busca jugadores libres cuyo nombre de invocador contenga el texto dado.
+     * Busca jugadores libres cuyo nombre de invocador contenga el texto dado en una liga.
      * Usado para el buscador del mercado de fichajes.
      *
+     * @param leagueId ID de la liga
      * @param name fragmento del nombre a buscar (case-insensitive)
      * @param pageable paginación
      * @return página de resultados
      */
-    Page<Player> findByIsFreeAgentTrueAndSummonerNameContainingIgnoreCase(
-            String name, Pageable pageable);
+    Page<Player> findByLeagueIdAndIsFreeAgentTrueAndSummonerNameContainingIgnoreCase(
+            Long leagueId, String name, Pageable pageable);
 }

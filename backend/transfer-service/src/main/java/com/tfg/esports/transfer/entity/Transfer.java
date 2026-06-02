@@ -64,12 +64,12 @@ public class Transfer {
     private Long toClubId;
 
     /**
-     * Cantidad ofrecida por el jugador en euros.
+     * Cantidad ofrecida por el jugador en Riot Points.
      * No puede ser negativa (constraint en BD).
      */
-    @Column(name = "transfer_fee", nullable = false, precision = 15, scale = 2)
+    @Column(name = "transfer_fee_rp", nullable = false)
     @Builder.Default
-    private BigDecimal transferFee = BigDecimal.ZERO;
+    private Integer transferFeeRp = 0;
 
     /** Estado actual de la transferencia */
     @Enumerated(EnumType.STRING)

@@ -46,6 +46,24 @@ public class LeagueService {
     }
 
     /**
+     * Crea una nueva liga con la configuración proporcionada.
+     */
+    @Transactional
+    public League createLeague(com.tfg.esports.league.dto.LeagueRequest request) {
+        League league = League.builder()
+                .name(request.getName())
+                .season(request.getSeason())
+                .startDate(request.getStartDate())
+                .initialRp(request.getInitialRp())
+                .maxClubs(request.getMaxClubs())
+                .transferRules(request.getTransferRules())
+                .matchWagerRp(request.getMatchWagerRp())
+                .active(true)
+                .build();
+        return leagueRepository.save(league);
+    }
+
+    /**
      * Inscribe a un club en una liga.
      *
      * @param leagueId ID de la liga
@@ -58,6 +76,11 @@ public class LeagueService {
 
         if (leagueClubRepository.existsByIdLeagueIdAndIdClubId(leagueId, clubId)) {
             throw new IllegalArgumentException("El club ya está inscrito en esta liga");
+        }
+        
+        long currentClubs = leagueClubRepository.countByIdLeagueId(leagueId);
+        if (currentClubs >= league.getMaxClubs()) {
+            throw new IllegalArgumentException("La liga ya ha alcanzado el número máximo de clubes");
         }
 
         LeagueClubId id = new LeagueClubId(leagueId, clubId);

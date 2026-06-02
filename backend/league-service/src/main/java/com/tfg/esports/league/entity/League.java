@@ -47,4 +47,20 @@ public class League {
     @Column(nullable = false)
     @Builder.Default
     private Boolean active = true;
+
+    @Column(name = "initial_rp", nullable = false)
+    @Builder.Default
+    private Integer initialRp = 10000;
+
+    @Column(name = "max_clubs", nullable = false)
+    @Builder.Default
+    private Integer maxClubs = 10;
+
+    @Column(name = "transfer_rules")
+    @Builder.Default
+    private String transferRules = "OPEN";
+
+    @Column(name = "match_wager_rp", nullable = false)
+    @Builder.Default
+    private Integer matchWagerRp = 500;
 }
