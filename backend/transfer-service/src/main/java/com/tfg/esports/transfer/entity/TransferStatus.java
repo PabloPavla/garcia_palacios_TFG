@@ -16,5 +16,7 @@ public enum TransferStatus {
     PENDING,
     ACCEPTED,
     REJECTED,
-    CANCELLED
+    CANCELLED,
+    AUCTION,
+    COUNTER_OFFERED
 }

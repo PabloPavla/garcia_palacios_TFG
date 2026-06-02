@@ -32,6 +32,12 @@ const clubService = {
         return response.data;
     },
     
+    getAllPlayers: async (leagueId, page = 0, size = 12, role = '', sort = 'overallRating,desc') => {
+        const roleParam = role ? `&role=${role}` : '';
+        const response = await api.get(`/players/league/${leagueId}/all?page=${page}&size=${size}&sort=${sort}${roleParam}`);
+        return response.data;
+    },
+    
     getPlayerById: async (id) => {
         const response = await api.get(`/players/${id}`);
         return response.data;

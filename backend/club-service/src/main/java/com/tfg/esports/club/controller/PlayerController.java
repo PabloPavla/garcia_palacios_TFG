@@ -58,6 +58,30 @@ public class PlayerController {
     }
 
     /**
+     * Obtiene el mercado de TODOS los jugadores (libres y con club) para una liga.
+     */
+    @GetMapping("/league/{leagueId}/all")
+    public ResponseEntity<Page<PlayerResponse>> getAllPlayersInLeague(
+            @PathVariable Long leagueId,
+            @RequestParam(required = false) LolRole role,
+            @RequestParam(required = false) String  search,
+            @PageableDefault(size = 20, sort = "overallRating") Pageable pageable) {
+            
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(playerService.searchAllPlayers(leagueId, search, pageable));
+        }
+        if (role != null) {
+            return ResponseEntity.ok(playerService.getAllPlayersByRole(leagueId, role, pageable));
+        }
+        return ResponseEntity.ok(playerService.getAllPlayers(leagueId, pageable));
+    }
+
+    @GetMapping("/{id}/owner")
+    public ResponseEntity<Long> getPlayerOwnerClubId(@PathVariable Long id) {
+        return ResponseEntity.ok(playerService.getPlayerById(id).getClubId());
+    }
+
+    /**
      * Obtiene el detalle completo de un jugador.
      *
      * @param id ID del jugador
@@ -123,17 +147,31 @@ public class PlayerController {
         return ResponseEntity.ok(playerService.signPlayer(id, clubId));
     }
 
-    /**
-     * Libera a un jugador de su club, convirtiéndolo en agente libre.
-     *
-     * @param id   ID del jugador a liberar
-     * @param role rol del usuario (OWNER o ADMIN)
-     * @return 200 con el jugador actualizado
-     */
     @PostMapping("/{id}/release")
     public ResponseEntity<PlayerResponse> releasePlayer(
             @PathVariable Long id,
             @RequestHeader("X-Auth-Role") String role) {
         return ResponseEntity.ok(playerService.releasePlayer(id));
+    }
+
+    /**
+     * Transfiere un jugador con dueño a otro club.
+     */
+    @PutMapping("/{id}/transfer")
+    public ResponseEntity<PlayerResponse> transferPlayer(
+            @PathVariable Long id,
+            @RequestParam Long toClubId) {
+        return ResponseEntity.ok(playerService.transferPlayer(id, toClubId));
+    }
+
+    /**
+     * Intercambia dos jugadores.
+     */
+    @PutMapping("/swap")
+    public ResponseEntity<Void> swapPlayers(
+            @RequestParam Long player1Id,
+            @RequestParam Long player2Id) {
+        playerService.swapPlayers(player1Id, player2Id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -36,10 +36,14 @@ const MarketPage = () => {
     const [offerFee, setOfferFee] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
-    const fetchFreeAgents = async (pageNumber = 0, currentRole = roleFilter, currentSort = sortOrder) => {
+    const [myPlayers, setMyPlayers] = useState([]);
+    const [exchangePlayerId, setExchangePlayerId] = useState('');
+    const [activeClubId, setActiveClubId] = useState(null);
+
+    const fetchAllPlayers = async (pageNumber = 0, currentRole = roleFilter, currentSort = sortOrder) => {
         setLoading(true);
         try {
-            const response = await clubService.getFreeAgents(leagueId, pageNumber, 12, currentRole, currentSort);
+            const response = await clubService.getAllPlayers(leagueId, pageNumber, 12, currentRole, currentSort);
             setPlayers(response.content || []);
             setTotalPages(response.totalPages || 0);
             setPage(pageNumber);
@@ -51,12 +55,34 @@ const MarketPage = () => {
     };
 
     useEffect(() => {
-        fetchFreeAgents(0, roleFilter, sortOrder);
+        const loadContext = async () => {
+            try {
+                const clubs = await clubService.getMyClubs();
+                const currentClub = clubs.find(c => c.leagueId === parseInt(leagueId) || c.leagueId === leagueId);
+                if (currentClub) {
+                    setActiveClubId(currentClub.id);
+                    const playersResp = await clubService.getClubPlayers(currentClub.id);
+                    setMyPlayers(playersResp || []);
+                }
+            } catch (err) {
+                console.error("Error loading club context", err);
+            }
+        };
+        loadContext();
+    }, [leagueId]);
+
+    useEffect(() => {
+        fetchAllPlayers(0, roleFilter, sortOrder);
     }, [leagueId, roleFilter, sortOrder]);
 
     const handleOpenModal = (player) => {
+        if (player.clubId === activeClubId) {
+            setError("No puedes ofertar por tu propio jugador.");
+            return;
+        }
         setSelectedPlayer(player);
         setOfferFee(player.priceRp || 0);
+        setExchangePlayerId('');
         setShowModal(true);
     };
 
@@ -67,11 +93,17 @@ const MarketPage = () => {
         setSuccessMsg(null);
         
         try {
-            await transferService.createTransferOffer(selectedPlayer.id, offerFee);
-            setSuccessMsg(`¡Oferta enviada exitosamente por ${selectedPlayer.summonerName}!`);
+            const exId = exchangePlayerId ? parseInt(exchangePlayerId) : null;
+            await transferService.createTransferOffer(selectedPlayer.id, offerFee, activeClubId, exId);
+            setSuccessMsg(selectedPlayer.isFreeAgent ? 
+                `¡Puja enviada exitosamente por ${selectedPlayer.summonerName}! La subasta terminará en 1 minuto.` :
+                `¡Oferta enviada al club ${selectedPlayer.clubName} por ${selectedPlayer.summonerName}!`
+            );
             setShowModal(false);
+            // Refresh to show updated market
+            fetchAllPlayers(page, roleFilter, sortOrder);
         } catch (err) {
-            setError(err.response?.data?.message || 'Error al enviar la oferta. Es posible que ya tengas una oferta pendiente por este jugador.');
+            setError(err.response?.data?.message || 'Error al enviar la oferta. Verifica si ya tienes una oferta pendiente o si el RP es suficiente.');
             setShowModal(false);
         } finally {
             setSubmitting(false);
@@ -135,18 +167,20 @@ const MarketPage = () => {
                                         </Card.Text>
                                         
                                         <div className="bg-black bg-opacity-25 rounded p-2 mb-3 text-center">
-                                            <span className="d-block small text-secondary">Valor Estimado</span>
-                                            <span className="fw-bold text-info">
-                                                {player.priceRp} RP
+                                            <span className="d-block small text-secondary">Estado / Club</span>
+                                            <span className={`fw-bold ${player.isFreeAgent ? 'text-success' : 'text-info'}`}>
+                                                {player.isFreeAgent ? 'AGENTE LIBRE' : player.clubName}
                                             </span>
+                                            <span className="d-block small text-secondary mt-1">Valor: {player.priceRp} RP</span>
                                         </div>
                                         
                                         <Button 
-                                            variant="outline-primary" 
+                                            variant={player.isFreeAgent ? "outline-success" : "outline-primary"} 
                                             className="w-100 fw-bold"
+                                            disabled={player.clubId === activeClubId}
                                             onClick={() => handleOpenModal(player)}
                                         >
-                                            OFERTAR
+                                            {player.clubId === activeClubId ? 'TU JUGADOR' : (player.isFreeAgent ? 'PUJAR / SUBASTA' : 'OFERTAR / INTERCAMBIO')}
                                         </Button>
                                     </Card.Body>
                                 </Card>
@@ -160,7 +194,7 @@ const MarketPage = () => {
                             <Button 
                                 variant="outline-secondary" 
                                 disabled={page === 0}
-                                onClick={() => fetchFreeAgents(page - 1)}
+                                onClick={() => fetchAllPlayers(page - 1)}
                             >
                                 <i className="bi bi-chevron-left"></i> Anterior
                             </Button>
@@ -170,7 +204,7 @@ const MarketPage = () => {
                             <Button 
                                 variant="outline-secondary" 
                                 disabled={page >= totalPages - 1}
-                                onClick={() => fetchFreeAgents(page + 1)}
+                                onClick={() => fetchAllPlayers(page + 1)}
                             >
                                 Siguiente <i className="bi bi-chevron-right"></i>
                             </Button>
@@ -203,9 +237,27 @@ const MarketPage = () => {
                                     className="bg-black text-white border-secondary fs-5"
                                 />
                                 <Form.Text className="text-info">
-                                    Valor recomendado: {selectedPlayer.priceRp} RP
+                                    {selectedPlayer.isFreeAgent 
+                                        ? `Puja actual sugerida: ${selectedPlayer.priceRp} RP (Debes superar la puja activa si la hay)`
+                                        : `Valor recomendado: ${selectedPlayer.priceRp} RP`}
                                 </Form.Text>
                             </Form.Group>
+
+                            {!selectedPlayer.isFreeAgent && (
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="text-secondary">Añadir Jugador al Intercambio (Opcional)</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-white border-secondary"
+                                        value={exchangePlayerId}
+                                        onChange={(e) => setExchangePlayerId(e.target.value)}
+                                    >
+                                        <option value="">-- Sin jugador a cambio --</option>
+                                        {myPlayers.map(p => (
+                                            <option key={p.id} value={p.id}>{p.summonerName} ({p.lolRole}) - {p.priceRp} RP</option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            )}
                             
                             <div className="d-grid mt-4">
                                 <Button variant="primary" type="submit" disabled={submitting} size="lg">

@@ -88,4 +88,19 @@ public class Transfer {
      */
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
+
+    @Column(name = "auction_end_time")
+    private LocalDateTime auctionEndTime;
+
+    @Column(name = "exchange_player_id")
+    private Long exchangePlayerId;
+
+    @Column(name = "counter_transfer_fee_rp")
+    private Integer counterTransferFeeRp;
+
+    @Column(name = "counter_exchange_player_id")
+    private Long counterExchangePlayerId;
+
+    @Column(name = "last_negotiator_club_id")
+    private Long lastNegotiatorClubId;
 }

@@ -5,14 +5,8 @@ import com.tfg.esports.transfer.entity.TransferStatus;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * DTO de respuesta con los datos completos de una transferencia.
- *
- * @author Pablo García Palacios
- */
 @Data
 @Builder
 public class TransferResponse {
@@ -26,12 +20,12 @@ public class TransferResponse {
     private LocalDateTime  offeredAt;
     private LocalDateTime  resolvedAt;
 
-    /**
-     * Convierte una entidad {@link Transfer} a este DTO.
-     *
-     * @param t la entidad de transferencia
-     * @return DTO con los datos de la transferencia
-     */
+    private LocalDateTime  auctionEndTime;
+    private Long           exchangePlayerId;
+    private Integer        counterTransferFeeRp;
+    private Long           counterExchangePlayerId;
+    private Long           lastNegotiatorClubId;
+
     public static TransferResponse fromEntity(Transfer t) {
         return TransferResponse.builder()
                 .id(t.getId())
@@ -42,6 +36,11 @@ public class TransferResponse {
                 .status(t.getStatus())
                 .offeredAt(t.getOfferedAt())
                 .resolvedAt(t.getResolvedAt())
+                .auctionEndTime(t.getAuctionEndTime())
+                .exchangePlayerId(t.getExchangePlayerId())
+                .counterTransferFeeRp(t.getCounterTransferFeeRp())
+                .counterExchangePlayerId(t.getCounterExchangePlayerId())
+                .lastNegotiatorClubId(t.getLastNegotiatorClubId())
                 .build();
     }
 }

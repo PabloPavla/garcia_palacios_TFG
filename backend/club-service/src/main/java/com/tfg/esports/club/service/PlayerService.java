@@ -74,6 +74,25 @@ public class PlayerService {
                 .map(PlayerResponse::fromEntity);
     }
 
+    @Transactional(readOnly = true)
+    public Page<PlayerResponse> getAllPlayers(Long leagueId, Pageable pageable) {
+        return playerRepository.findByLeagueId(leagueId, pageable)
+                .map(PlayerResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PlayerResponse> getAllPlayersByRole(Long leagueId, LolRole role, Pageable pageable) {
+        return playerRepository.findByLeagueIdAndLolRole(leagueId, role, pageable)
+                .map(PlayerResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PlayerResponse> searchAllPlayers(Long leagueId, String name, Pageable pageable) {
+        return playerRepository
+                .findByLeagueIdAndSummonerNameContainingIgnoreCase(leagueId, name, pageable)
+                .map(PlayerResponse::fromEntity);
+    }
+
     /**
      * Obtiene la plantilla completa de un club.
      *
@@ -222,6 +241,50 @@ public class PlayerService {
         player.setIsFreeAgent(true);
 
         return PlayerResponse.fromEntity(playerRepository.save(player));
+    }
+
+    @Transactional
+    public PlayerResponse transferPlayer(Long playerId, Long toClubId) {
+        Player player = findPlayerOrThrow(playerId);
+        Club toClub = findClubOrThrow(toClubId);
+        
+        long roleCount = playerRepository.countByClubIdAndLolRole(toClubId, player.getLolRole());
+        if (roleCount >= MAX_PLAYERS_PER_ROLE) {
+            throw new IllegalArgumentException("El club destino ya tiene el máximo de jugadores en este rol.");
+        }
+        
+        player.setClub(toClub);
+        return PlayerResponse.fromEntity(playerRepository.save(player));
+    }
+
+    @Transactional
+    public void swapPlayers(Long player1Id, Long player2Id) {
+        Player p1 = findPlayerOrThrow(player1Id);
+        Player p2 = findPlayerOrThrow(player2Id);
+        
+        Club club1 = p1.getClub();
+        Club club2 = p2.getClub();
+
+        if (p1.getLolRole() != p2.getLolRole()) {
+            if (club2 != null) {
+                long c2RoleCount = playerRepository.countByClubIdAndLolRole(club2.getId(), p1.getLolRole());
+                if (c2RoleCount >= MAX_PLAYERS_PER_ROLE) {
+                    throw new IllegalArgumentException("El club destino excede el límite para el rol " + p1.getLolRole());
+                }
+            }
+            if (club1 != null) {
+                long c1RoleCount = playerRepository.countByClubIdAndLolRole(club1.getId(), p2.getLolRole());
+                if (c1RoleCount >= MAX_PLAYERS_PER_ROLE) {
+                    throw new IllegalArgumentException("El club origen excede el límite para el rol " + p2.getLolRole());
+                }
+            }
+        }
+        
+        p1.setClub(club2);
+        p2.setClub(club1);
+        
+        playerRepository.save(p1);
+        playerRepository.save(p2);
     }
 
     /**

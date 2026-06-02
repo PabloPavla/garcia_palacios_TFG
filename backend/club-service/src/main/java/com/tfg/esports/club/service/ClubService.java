@@ -153,6 +153,16 @@ public class ClubService {
         return ClubResponse.fromEntity(clubRepository.save(club));
     }
 
+    @Transactional
+    public void deductRp(Long id, Integer amount) {
+        updateRiotPoints(id, -amount);
+    }
+
+    @Transactional
+    public void addRp(Long id, Integer amount) {
+        updateRiotPoints(id, amount);
+    }
+
     /**
      * Busca un club por ID o lanza excepción si no existe.
      *
