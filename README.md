@@ -8,7 +8,7 @@
 
 **Trabajo de Fin de Grado (TFG) - Pablo García Palacios**
 
-Aplicación web integral para la gestión de clubes de esports centrada en *League of Legends*. Desarrollada utilizando una robusta arquitectura de microservicios en el backend y una interfaz moderna *mobile-first* en el frontend.
+Aplicación web integral para la gestión de clubes de esports centrada en *League of Legends*. Desarrollada utilizando una robusta arquitectura de microservicios en el backend y una interfaz moderna en el frontend.
 
 ---
 
@@ -68,24 +68,6 @@ El proyecto está preparado para desplegarse fácilmente en cualquier entorno lo
    npm run dev
    ```
 
-La aplicación estará disponible en: **`http://localhost:5173`**
-
----
-
-## 📱 Acceso mediante Código QR (Exposición)
-
-Para la presentación del TFG, el tribunal puede acceder a la aplicación desde sus teléfonos móviles (el diseño es 100% *mobile-first*). 
-
-Si estás ejecutando el frontend en la red local de la universidad, puedes generar un QR apuntando a la IP local de tu máquina.
-
-**¿Cómo obtener la IP?**
-- En Windows (PowerShell): `ipconfig` (Busca la dirección IPv4, ej: `192.168.1.50`)
-- Inicia el frontend para red local: `npm run dev -- --host`
-- Entra a una web como [QRCode Monkey](https://www.qrcode-monkey.com/) y genera un QR con el texto: `http://192.168.1.50:5173`
-
-*(Nota: En la fase de producción en Azure, el código QR apuntará directamente al dominio público generado).*
-
----
 
 ## 👨‍💻 Tecnologías Utilizadas
 
@@ -93,6 +75,3 @@ Si estás ejecutando el frontend en la red local de la universidad, puedes gener
 - **Backend:** Java 21, Spring Boot 3, Spring Cloud Gateway, Spring Cloud Netflix Eureka, Spring Security, Spring Data JPA.
 - **Bases de Datos:** MySQL 8, Flyway (Control de versiones de BD).
 - **Herramientas:** Docker, Maven, Git.
-
----
-*Desarrollado para el Trabajo de Fin de Grado en Ingeniería Informática.*
