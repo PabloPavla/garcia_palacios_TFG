@@ -53,21 +53,20 @@ public class ClubController {
     }
 
     /**
-     * Obtiene el club que pertenece al usuario autenticado.
+     * Obtiene los clubes que pertenecen al usuario autenticado.
      * Usa la cabecera X-Auth-User-Id inyectada por el Gateway.
      *
      * @param userId ID del usuario (cabecera del Gateway)
-     * @return 200 con el club del propietario
+     * @return 200 con la lista de clubes del propietario
      */
-    @GetMapping("/my-club")
-    public ResponseEntity<ClubResponse> getMyClub(
+    @GetMapping("/my-clubs")
+    public ResponseEntity<List<ClubResponse>> getMyClubs(
             @RequestHeader("X-Auth-User-Id") Long userId) {
-        return ResponseEntity.ok(clubService.getClubByOwner(userId));
+        return ResponseEntity.ok(clubService.getClubsByOwner(userId));
     }
 
     /**
      * Crea un nuevo club para el usuario autenticado.
-     * Solo se permite un club por usuario (ROLE_OWNER).
      *
      * @param request datos del nuevo club
      * @param userId  ID del propietario (cabecera del Gateway)
@@ -126,5 +125,19 @@ public class ClubController {
     @GetMapping("/{id}/players")
     public ResponseEntity<List<PlayerResponse>> getClubPlayers(@PathVariable Long id) {
         return ResponseEntity.ok(playerService.getPlayersByClub(id));
+    }
+
+    /**
+     * Genera jugadores base para una liga recién creada.
+     *
+     * @param leagueId ID de la liga
+     * @param role rol del usuario autenticado (debe ser admin o owner)
+     * @return 200 con confirmación
+     */
+    @PostMapping("/generate-players")
+    public ResponseEntity<Map<String, String>> generatePlayersForLeague(
+            @RequestParam Long leagueId) {
+        playerService.generatePlayersForLeague(leagueId);
+        return ResponseEntity.ok(Map.of("message", "Jugadores generados correctamente para la liga " + leagueId));
     }
 }

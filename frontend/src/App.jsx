@@ -12,7 +12,8 @@ import MyClubPage from './pages/MyClubPage';
 import MarketPage from './pages/MarketPage';
 import TransfersPage from './pages/TransfersPage';
 import LeaguePage from './pages/LeaguePage';
-import MatchesPage from './pages/MatchesPage';
+import MatchesPage from './pages/MatchesPage'
+import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import PlayerPage from './pages/PlayerPage';
 
@@ -33,9 +34,10 @@ function App() {
             {/* Redirigir raíz a dashboard o login */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-            {/* Rutas Privadas (Requieren login) */}
+            {/* Rutas Privadas: Requieren autenticación */}
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/my-club" element={<MyClubPage />} />
               <Route path="/market/:leagueId" element={<MarketPage />} />
               <Route path="/transfers" element={<TransfersPage />} />

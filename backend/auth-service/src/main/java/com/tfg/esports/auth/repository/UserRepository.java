@@ -51,4 +51,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true si el email ya está registrado
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Busca usuarios cuyo username contenga el texto dado.
+     * Ignora mayúsculas y minúsculas.
+     *
+     * @param query texto a buscar
+     * @return lista de usuarios coincidentes
+     */
+    java.util.List<User> findByUsernameContainingIgnoreCase(String query);
 }

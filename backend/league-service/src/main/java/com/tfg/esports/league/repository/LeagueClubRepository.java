@@ -43,4 +43,12 @@ public interface LeagueClubRepository extends JpaRepository<LeagueClub, LeagueCl
     boolean existsByIdLeagueIdAndIdClubId(Long leagueId, Long clubId);
 
     long countByIdLeagueId(Long leagueId);
+
+    /**
+     * Obtiene todas las inscripciones de un club en distintas ligas.
+     *
+     * @param clubId ID del club
+     * @return lista de inscripciones
+     */
+    List<LeagueClub> findByIdClubId(Long clubId);
 }

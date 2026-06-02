@@ -63,4 +63,12 @@ public class League {
     @Column(name = "match_wager_rp", nullable = false)
     @Builder.Default
     private Integer matchWagerRp = 500;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private LeagueVisibility visibility = LeagueVisibility.PUBLIC;
+
+    @Column(name = "creator_user_id")
+    private Long creatorUserId;
 }

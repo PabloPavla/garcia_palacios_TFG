@@ -52,37 +52,31 @@ public class ClubService {
     }
 
     /**
-     * Obtiene el club que pertenece a un usuario concreto.
+     * Obtiene los clubes que pertenecen a un usuario concreto.
      *
      * @param ownerId ID del usuario propietario
-     * @return DTO del club del propietario
-     * @throws IllegalArgumentException si el usuario no tiene club
+     * @return Lista de DTOs de los clubes del propietario
      */
     @Transactional(readOnly = true)
-    public ClubResponse getClubByOwner(Long ownerId) {
-        Club club = clubRepository.findByOwnerId(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No tienes ningún club registrado aún"));
-        return ClubResponse.fromEntity(club);
+    public List<ClubResponse> getClubsByOwner(Long ownerId) {
+        return clubRepository.findByOwnerId(ownerId)
+                .stream()
+                .map(ClubResponse::fromEntity)
+                .toList();
     }
 
     /**
      * Crea un nuevo club para el usuario propietario indicado.
      *
-     * <p>Cada usuario solo puede tener un club. Si ya tiene uno,
-     * se lanza una excepción.</p>
+     * <p>Un usuario puede tener múltiples clubes, uno para cada liga.</p>
      *
      * @param request datos del nuevo club
      * @param ownerId ID del usuario propietario (extraído del JWT por el Gateway)
      * @return DTO del club creado
-     * @throws IllegalArgumentException si el propietario ya tiene un club o el nombre está en uso
+     * @throws IllegalArgumentException si el nombre está en uso
      */
     @Transactional
     public ClubResponse createClub(ClubRequest request, Long ownerId) {
-        // Verificar que el propietario no tiene ya un club
-        if (clubRepository.findByOwnerId(ownerId).isPresent()) {
-            throw new IllegalArgumentException("Ya tienes un club registrado");
-        }
         // Verificar unicidad del nombre
         if (clubRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException("Ya existe un club con ese nombre");

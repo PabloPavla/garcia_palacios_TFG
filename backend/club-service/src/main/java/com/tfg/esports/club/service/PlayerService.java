@@ -235,4 +235,97 @@ public class PlayerService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Club no encontrado con ID: " + id));
     }
+
+    /**
+     * Genera jugadores de ejemplo para una liga recién creada.
+     * Crea 50 jugadores basados en pros reales de LoL como agentes libres.
+     *
+     * @param leagueId ID de la liga
+     */
+    @Transactional
+    public void generatePlayersForLeague(Long leagueId) {
+        // Verificar si ya existen jugadores para esta liga
+        long existing = playerRepository.countByLeagueId(leagueId);
+        if (existing > 0) {
+            return; // Ya hay jugadores, no duplicar
+        }
+
+        String[][] playersData = {
+            // TOP laners
+            {"Zeus", "Choi Woo-je", "KR", "21", "TOP", "92", "3200"},
+            {"Kiin", "Kim Gi-in", "KR", "24", "TOP", "89", "2800"},
+            {"Bin", "Chen Ze-Bin", "CN", "22", "TOP", "88", "2700"},
+            {"BrokenBlade", "Sergen Çelik", "DE", "24", "TOP", "87", "2500"},
+            {"Odoamne", "Andrei Pascu", "RO", "28", "TOP", "83", "2000"},
+            {"TheShy", "Kang Seung-lok", "KR", "24", "TOP", "90", "3000"},
+            {"Wunder", "Martin Hansen", "DK", "25", "TOP", "84", "2100"},
+            {"Impact", "Jung Eon-yeong", "KR", "28", "TOP", "82", "1900"},
+            {"Breathe", "Chen Chen", "CN", "22", "TOP", "81", "1800"},
+            {"Ssumday", "Kim Chan-ho", "KR", "27", "TOP", "80", "1700"},
+
+            // JUNGLE
+            {"Oner", "Moon Hyeon-jun", "KR", "21", "JUNGLE", "91", "3100"},
+            {"Canyon", "Kim Geon-bu", "KR", "22", "JUNGLE", "93", "3400"},
+            {"Jankos", "Marcin Jankowski", "PL", "29", "JUNGLE", "86", "2400"},
+            {"Wei", "Yan Wei", "CN", "22", "JUNGLE", "87", "2500"},
+            {"Elyoya", "Javier Prades", "ES", "23", "JUNGLE", "85", "2300"},
+            {"Razork", "Iván Martín", "ES", "24", "JUNGLE", "84", "2100"},
+            {"Inspired", "Kacper Słoma", "PL", "23", "JUNGLE", "85", "2200"},
+            {"Peanut", "Han Wang-ho", "KR", "26", "JUNGLE", "86", "2400"},
+            {"Tarzan", "Lee Seung-yong", "KR", "24", "JUNGLE", "88", "2600"},
+            {"Kanavi", "Seo Jin-hyeok", "KR", "23", "JUNGLE", "89", "2800"},
+
+            // MID
+            {"Faker", "Lee Sang-hyeok", "KR", "28", "MID", "97", "5000"},
+            {"Caps", "Rasmus Winther", "DK", "24", "MID", "91", "3100"},
+            {"Chovy", "Jeong Ji-hoon", "KR", "23", "MID", "94", "3600"},
+            {"ShowMaker", "Heo Su", "KR", "23", "MID", "93", "3500"},
+            {"Knight", "Zhuo Ding", "CN", "23", "MID", "92", "3300"},
+            {"Humanoid", "Marek Brázda", "CZ", "24", "MID", "86", "2400"},
+            {"BDD", "Gwak Bo-seong", "KR", "25", "MID", "85", "2200"},
+            {"Scout", "Lee Ye-chan", "KR", "25", "MID", "87", "2500"},
+            {"Rookie", "Song Eui-jin", "KR", "27", "MID", "88", "2700"},
+            {"Larssen", "Emil Larsson", "SE", "24", "MID", "84", "2100"},
+
+            // ADC
+            {"Gumayusi", "Lee Min-hyeong", "KR", "22", "ADC", "92", "3300"},
+            {"Viper", "Park Do-hyeon", "KR", "23", "ADC", "91", "3100"},
+            {"Ruler", "Park Jae-hyuk", "KR", "26", "ADC", "90", "3000"},
+            {"Upset", "Elias Lipp", "DE", "24", "ADC", "87", "2500"},
+            {"Hans Sama", "Steven Liv", "FR", "24", "ADC", "86", "2300"},
+            {"GALA", "Chen Wei", "CN", "23", "ADC", "89", "2800"},
+            {"Comp", "Markos Stamkopoulos", "GR", "23", "ADC", "84", "2100"},
+            {"Deft", "Kim Hyuk-kyu", "KR", "27", "ADC", "88", "2600"},
+            {"Flakked", "Víctor Tortosa", "ES", "23", "ADC", "82", "1900"},
+            {"Peyz", "Kim Su-hwan", "KR", "19", "ADC", "85", "2200"},
+
+            // SUPPORT
+            {"Keria", "Ryu Min-seok", "KR", "21", "SUPPORT", "94", "3600"},
+            {"Meiko", "Tian Ye", "CN", "26", "SUPPORT", "89", "2800"},
+            {"Lehends", "Son Si-woo", "KR", "26", "SUPPORT", "87", "2500"},
+            {"Hylissang", "Zdravets Galabov", "BG", "28", "SUPPORT", "85", "2300"},
+            {"Mikyx", "Mihael Mehle", "SI", "25", "SUPPORT", "86", "2400"},
+            {"CoreJJ", "Jo Yong-in", "KR", "29", "SUPPORT", "85", "2200"},
+            {"Ming", "Shi Sen-Ming", "CN", "25", "SUPPORT", "88", "2600"},
+            {"BeryL", "Cho Geon-hee", "KR", "25", "SUPPORT", "86", "2400"},
+            {"Vulcan", "Philippe Laflamme", "CA", "24", "SUPPORT", "83", "2000"},
+            {"Trymbi", "Adrian Trybus", "PL", "23", "SUPPORT", "82", "1900"}
+        };
+
+        for (String[] p : playersData) {
+            Player player = Player.builder()
+                    .summonerName(p[0] + "_L" + leagueId)  // Unique per league
+                    .realName(p[1])
+                    .nationality(p[2])
+                    .age(Integer.parseInt(p[3]))
+                    .lolRole(LolRole.valueOf(p[4]))
+                    .overallRating(Integer.parseInt(p[5]))
+                    .priceRp(Integer.parseInt(p[6]))
+                    .leagueId(leagueId)
+                    .isFreeAgent(true)
+                    .build();
+            playerRepository.save(player);
+        }
+    }
 }
+

@@ -16,13 +16,13 @@ import java.util.Optional;
 public interface ClubRepository extends JpaRepository<Club, Long> {
 
     /**
-     * Obtiene el club que pertenece a un propietario concreto.
-     * Cada usuario solo puede tener un club.
+     * Obtiene los clubes que pertenecen a un propietario concreto.
+     * Un usuario puede tener un club por cada liga en la que participe.
      *
      * @param ownerId ID del usuario propietario
-     * @return Optional con el club si existe
+     * @return Lista con los clubes del usuario
      */
-    Optional<Club> findByOwnerId(Long ownerId);
+    List<Club> findByOwnerId(Long ownerId);
 
     /**
      * Comprueba si ya existe un club con el nombre indicado.

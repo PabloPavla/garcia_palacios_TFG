@@ -24,8 +24,8 @@ Start-Sleep -Seconds 15
 Write-Host "Starting API Gateway..."
 Start-Process -FilePath "java" -ArgumentList "-jar backend\api-gateway\target\api-gateway-1.0.0-SNAPSHOT.jar" -WindowStyle Minimized
 
-Write-Host "Installing Frontend dependencies..."
-Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "frontend" -Wait
+# Write-Host "Installing Frontend dependencies..."
+# Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "frontend" -Wait
 
 Write-Host "Starting Frontend (Vite)..."
 Start-Process -FilePath "npm.cmd" -ArgumentList "run dev -- --host" -WorkingDirectory "frontend"
