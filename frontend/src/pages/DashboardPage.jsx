@@ -133,11 +133,11 @@ const DashboardPage = () => {
                 <Col md={4}>
                     <div className="glass-card p-4 h-100 border-start border-primary border-4">
                         <div className="d-flex justify-content-between">
-                            <h5 className="text-secondary fw-bold">PRESUPUESTO</h5>
-                            <i className="bi bi-cash-coin fs-4 text-primary"></i>
+                            <h5 className="text-secondary fw-bold">RIOT POINTS</h5>
+                            <i className="bi bi-gem fs-4 text-primary"></i>
                         </div>
                         <h2 className="mt-3 fw-bold text-white mb-0">
-                            {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(club.budget)}
+                            {club.riotPoints} RP
                         </h2>
                     </div>
                 </Col>
@@ -185,7 +185,7 @@ const DashboardPage = () => {
                         <i className="bi bi-shop display-4 text-info mb-3"></i>
                         <h3>Mercado de Fichajes</h3>
                         <p className="text-secondary">Busca agentes libres y refuerza tu equipo para competir en la liga.</p>
-                        <Button as={Link} to="/market" variant="outline-primary" className="mt-2">Explorar Mercado</Button>
+                        <Button as={Link} to="/leagues" variant="outline-primary" className="mt-2">Ver Ligas</Button>
                     </div>
                 </Col>
             </Row>

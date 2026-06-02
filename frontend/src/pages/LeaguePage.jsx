@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Table, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import leagueService from '../services/leagueService';
 import clubService from '../services/clubService';
 
@@ -66,6 +67,13 @@ const LeaguePage = () => {
                     {league ? `${league.name} - ${league.season}` : 'CLASIFICACIÓN'}
                 </h1>
                 <p className="text-secondary">Clasificación oficial de la temporada</p>
+                {league && (
+                    <div className="mt-4">
+                        <Link to={`/market/${league.id}`} className="btn btn-outline-primary btn-lg">
+                            <i className="bi bi-shop me-2"></i> Ir al Mercado de la Liga
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {error ? (

@@ -44,12 +44,25 @@ public class LeagueController {
             @RequestParam Long clubId,
             @RequestHeader("X-Auth-Role") String role) {
 
-        if (!"ROLE_ADMIN".equals(role)) {
+        if (!"ROLE_ADMIN".equals(role) && !"ROLE_OWNER".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Solo los administradores pueden inscribir clubes"));
+                    .body(Map.of("error", "No tienes permisos para inscribir clubes"));
         }
 
         leagueService.enrollClub(id, clubId);
         return ResponseEntity.ok(Map.of("message", "Club inscrito correctamente"));
+    }
+
+    @PostMapping
+    public ResponseEntity<League> createLeague(
+            @RequestBody @jakarta.validation.Valid com.tfg.esports.league.dto.LeagueRequest request,
+            @RequestHeader("X-Auth-Role") String role) {
+        
+        if (!"ROLE_ADMIN".equals(role) && !"ROLE_OWNER".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        League league = leagueService.createLeague(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(league);
     }
 }

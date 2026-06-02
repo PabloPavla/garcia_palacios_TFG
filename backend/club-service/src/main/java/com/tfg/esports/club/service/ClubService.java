@@ -142,6 +142,24 @@ public class ClubService {
     }
 
     /**
+     * Suma o resta Riot Points al club. Utilizado para gestionar recompensas y apuestas.
+     * 
+     * @param id ID del club
+     * @param amount cantidad de RP a sumar (o restar si es negativo)
+     * @return DTO del club actualizado
+     */
+    @Transactional
+    public ClubResponse updateRiotPoints(Long id, Integer amount) {
+        Club club = findClubOrThrow(id);
+        int newBalance = club.getRiotPoints() + amount;
+        if (newBalance < 0) {
+            throw new IllegalArgumentException("No hay suficientes Riot Points.");
+        }
+        club.setRiotPoints(newBalance);
+        return ClubResponse.fromEntity(clubRepository.save(club));
+    }
+
+    /**
      * Busca un club por ID o lanza excepción si no existe.
      *
      * @param id ID del club

@@ -125,7 +125,7 @@ public class TransferService {
         Transfer transfer = Transfer.builder()
                 .playerId(request.getPlayerId())
                 .toClubId(toClubId)
-                .transferFee(request.getTransferFee())
+                .transferFeeRp(request.getTransferFeeRp())
                 .status(TransferStatus.PENDING)
                 .build();
 

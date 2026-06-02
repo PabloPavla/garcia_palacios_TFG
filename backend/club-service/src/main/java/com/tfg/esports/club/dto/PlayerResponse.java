@@ -23,7 +23,8 @@ public class PlayerResponse {
     private String nationality;
     private Integer age;
     private LolRole lolRole;
-    private BigDecimal marketValue;
+    private Integer priceRp;
+    private Long leagueId;
     private Long clubId;
     private String clubName;
     private Boolean isFreeAgent;
@@ -44,7 +45,8 @@ public class PlayerResponse {
                 .nationality(player.getNationality())
                 .age(player.getAge())
                 .lolRole(player.getLolRole())
-                .marketValue(player.getMarketValue())
+                .priceRp(player.getPriceRp())
+                .leagueId(player.getLeagueId())
                 .clubId(player.getClub() != null ? player.getClub().getId() : null)
                 .clubName(player.getClub() != null ? player.getClub().getName() : null)
                 .isFreeAgent(player.getIsFreeAgent())

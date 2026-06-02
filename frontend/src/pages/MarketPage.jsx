@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Modal, Form } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
 import clubService from '../services/clubService';
 import transferService from '../services/transferService';
 
@@ -15,6 +16,7 @@ const getRoleColor = (role) => {
 };
 
 const MarketPage = () => {
+    const { leagueId } = useParams();
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -33,7 +35,7 @@ const MarketPage = () => {
     const fetchFreeAgents = async (pageNumber = 0) => {
         setLoading(true);
         try {
-            const response = await clubService.getFreeAgents(pageNumber, 12);
+            const response = await clubService.getFreeAgents(leagueId, pageNumber, 12);
             setPlayers(response.content || []);
             setTotalPages(response.totalPages || 0);
             setPage(pageNumber);
@@ -50,7 +52,7 @@ const MarketPage = () => {
 
     const handleOpenModal = (player) => {
         setSelectedPlayer(player);
-        setOfferFee(player.marketValue || 0);
+        setOfferFee(player.priceRp || 0);
         setShowModal(true);
     };
 
@@ -105,7 +107,7 @@ const MarketPage = () => {
                                         <div className="bg-black bg-opacity-25 rounded p-2 mb-3 text-center">
                                             <span className="d-block small text-secondary">Valor Estimado</span>
                                             <span className="fw-bold text-info">
-                                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(player.marketValue)}
+                                                {player.priceRp} RP
                                             </span>
                                         </div>
                                         
@@ -160,18 +162,18 @@ const MarketPage = () => {
                                 <Badge bg={getRoleColor(selectedPlayer.lolRole)}>{selectedPlayer.lolRole}</Badge>
                             </div>
                             <Form.Group className="mb-3">
-                                <Form.Label className="text-secondary">Oferta Salarial / Traspaso (€)</Form.Label>
+                                <Form.Label className="text-secondary">Oferta de Traspaso (RP)</Form.Label>
                                 <Form.Control 
                                     type="number" 
                                     min="0"
-                                    step="1000"
+                                    step="100"
                                     value={offerFee}
                                     onChange={(e) => setOfferFee(e.target.value)}
                                     required
                                     className="bg-black text-white border-secondary fs-5"
                                 />
                                 <Form.Text className="text-info">
-                                    Valor recomendado: {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(selectedPlayer.marketValue)}
+                                    Valor recomendado: {selectedPlayer.priceRp} RP
                                 </Form.Text>
                             </Form.Group>
                             

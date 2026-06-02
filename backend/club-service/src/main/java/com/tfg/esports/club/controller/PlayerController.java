@@ -32,27 +32,29 @@ public class PlayerController {
     private final PlayerService playerService;
 
     /**
-     * Obtiene el mercado de jugadores libres de forma paginada.
+     * Obtiene el mercado de jugadores libres de forma paginada para una liga.
      * Permite filtrar por rol y buscar por nombre de invocador.
      *
+     * @param leagueId ID de la liga (requerido)
      * @param role   rol de LoL a filtrar (opcional)
      * @param search fragmento del nombre a buscar (opcional)
      * @param pageable configuración de paginación (por defecto: 20 por página, orden por rating desc)
      * @return 200 con la página de jugadores libres
      */
-    @GetMapping
+    @GetMapping("/league/{leagueId}")
     public ResponseEntity<Page<PlayerResponse>> getFreeAgents(
+            @PathVariable Long leagueId,
             @RequestParam(required = false) LolRole role,
             @RequestParam(required = false) String  search,
             @PageableDefault(size = 20, sort = "overallRating") Pageable pageable) {
 
         if (search != null && !search.isBlank()) {
-            return ResponseEntity.ok(playerService.searchFreeAgents(search, pageable));
+            return ResponseEntity.ok(playerService.searchFreeAgents(leagueId, search, pageable));
         }
         if (role != null) {
-            return ResponseEntity.ok(playerService.getFreeAgentsByRole(role, pageable));
+            return ResponseEntity.ok(playerService.getFreeAgentsByRole(leagueId, role, pageable));
         }
-        return ResponseEntity.ok(playerService.getFreeAgents(pageable));
+        return ResponseEntity.ok(playerService.getFreeAgents(leagueId, pageable));
     }
 
     /**

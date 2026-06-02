@@ -42,8 +42,8 @@ public class PlayerService {
      * @return página de jugadores agentes libres
      */
     @Transactional(readOnly = true)
-    public Page<PlayerResponse> getFreeAgents(Pageable pageable) {
-        return playerRepository.findByIsFreeAgentTrue(pageable)
+    public Page<PlayerResponse> getFreeAgents(Long leagueId, Pageable pageable) {
+        return playerRepository.findByLeagueIdAndIsFreeAgentTrue(leagueId, pageable)
                 .map(PlayerResponse::fromEntity);
     }
 
@@ -55,8 +55,8 @@ public class PlayerService {
      * @return página de jugadores libres con ese rol
      */
     @Transactional(readOnly = true)
-    public Page<PlayerResponse> getFreeAgentsByRole(LolRole role, Pageable pageable) {
-        return playerRepository.findByIsFreeAgentTrueAndLolRole(role, pageable)
+    public Page<PlayerResponse> getFreeAgentsByRole(Long leagueId, LolRole role, Pageable pageable) {
+        return playerRepository.findByLeagueIdAndIsFreeAgentTrueAndLolRole(leagueId, role, pageable)
                 .map(PlayerResponse::fromEntity);
     }
 
@@ -68,9 +68,9 @@ public class PlayerService {
      * @return página de resultados coincidentes
      */
     @Transactional(readOnly = true)
-    public Page<PlayerResponse> searchFreeAgents(String name, Pageable pageable) {
+    public Page<PlayerResponse> searchFreeAgents(Long leagueId, String name, Pageable pageable) {
         return playerRepository
-                .findByIsFreeAgentTrueAndSummonerNameContainingIgnoreCase(name, pageable)
+                .findByLeagueIdAndIsFreeAgentTrueAndSummonerNameContainingIgnoreCase(leagueId, name, pageable)
                 .map(PlayerResponse::fromEntity);
     }
 
@@ -115,11 +115,11 @@ public class PlayerService {
                 .nationality(request.getNationality())
                 .age(request.getAge())
                 .lolRole(request.getLolRole())
-                .marketValue(request.getMarketValue() != null
-                        ? request.getMarketValue() : new BigDecimal("50000.00"))
-                .overallRating(request.getOverallRating() != null
-                        ? request.getOverallRating() : 70)
-                .isFreeAgent(true)
+                .priceRp(request.getPriceRp() != null
+                        ? request.getPriceRp() : 500)
+                .leagueId(request.getLeagueId() != null ? request.getLeagueId() : 1L)
+                .overallRating(request.getOverallRating())
+                .isFreeAgent(request.getClubId() == null)
                 .build();
 
         return PlayerResponse.fromEntity(playerRepository.save(player));
@@ -142,7 +142,8 @@ public class PlayerService {
         if (request.getNationality() != null) player.setNationality(request.getNationality());
         if (request.getAge()         != null) player.setAge(request.getAge());
         if (request.getLolRole()     != null) player.setLolRole(request.getLolRole());
-        if (request.getMarketValue() != null) player.setMarketValue(request.getMarketValue());
+        if (request.getPriceRp()     != null) player.setPriceRp(request.getPriceRp());
+        if (request.getLeagueId()    != null) player.setLeagueId(request.getLeagueId());
         if (request.getOverallRating() != null) player.setOverallRating(request.getOverallRating());
 
         return PlayerResponse.fromEntity(playerRepository.save(player));

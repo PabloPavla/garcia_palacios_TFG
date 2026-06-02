@@ -53,4 +53,8 @@ public class Match {
     @Column(nullable = false, length = 20)
     @Builder.Default
     private MatchStatus status = MatchStatus.SCHEDULED;
+
+    @Column(name = "wager_rp", nullable = false)
+    @Builder.Default
+    private Integer wagerRp = 500;
 }

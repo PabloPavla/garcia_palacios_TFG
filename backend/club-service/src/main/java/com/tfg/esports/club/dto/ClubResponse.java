@@ -23,7 +23,7 @@ public class ClubResponse {
     private String name;
     private String acronym;
     private String logoUrl;
-    private BigDecimal budget;
+    private Integer riotPoints;
     private Long ownerId;
     private Division division;
     private LocalDateTime createdAt;
@@ -41,7 +41,7 @@ public class ClubResponse {
                 .name(club.getName())
                 .acronym(club.getAcronym())
                 .logoUrl(club.getLogoUrl())
-                .budget(club.getBudget())
+                .riotPoints(club.getRiotPoints())
                 .ownerId(club.getOwnerId())
                 .division(club.getDivision())
                 .createdAt(club.getCreatedAt())

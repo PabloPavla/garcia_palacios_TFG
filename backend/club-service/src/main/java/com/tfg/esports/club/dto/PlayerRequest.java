@@ -38,7 +38,8 @@ public class PlayerRequest {
 
     /** Valor de mercado en euros (mínimo 0) */
     @DecimalMin(value = "0.0", message = "El valor de mercado no puede ser negativo")
-    private BigDecimal marketValue;
+    private Integer priceRp;
+    private Long leagueId;
 
     /** Valoración general (1–99) */
     @Min(value = 1, message = "La valoración mínima es 1")
