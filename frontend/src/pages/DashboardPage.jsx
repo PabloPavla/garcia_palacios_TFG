@@ -64,7 +64,7 @@ const DashboardPage = () => {
                     <Col md={8} lg={6}>
                         <div className="glass-card p-5 text-center">
                             <i className="bi bi-shield-plus display-1 text-primary mb-3"></i>
-                            <h2 className="fw-bold mb-4">FUNDA TU CLUB DE ESPORTS</h2>
+                            <h2 className="fw-bold mb-4">FUNDA TU CLUB EN CLASH MANAGER</h2>
                             <p className="text-secondary mb-4">
                                 ¡Bienvenido Mánager {auth?.username}! Parece que aún no has registrado tu equipo en la liga. 
                                 Elige un nombre épico y comienza tu camino a la gloria.
@@ -77,7 +77,7 @@ const DashboardPage = () => {
                                     <Form.Label className="text-secondary fw-semibold">Nombre del Club</Form.Label>
                                     <Form.Control 
                                         type="text" 
-                                        placeholder="Ej: T1, Fnatic, G2 Esports" 
+                                        placeholder="Ej: T1, Fnatic, G2" 
                                         value={clubName}
                                         onChange={(e) => setClubName(e.target.value)}
                                         required 

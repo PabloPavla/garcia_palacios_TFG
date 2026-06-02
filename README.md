@@ -1,4 +1,4 @@
-# 🏆 LoL Esports Club Manager
+# Clash Manager (TFG - LoL Esports Club Manager)
 
 ![League of Legends](https://img.shields.io/badge/League_of_Legends-151A22?style=for-the-badge&logo=league-of-legends&logoColor=C89B3C)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
