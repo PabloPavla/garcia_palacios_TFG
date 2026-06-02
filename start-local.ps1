@@ -28,7 +28,7 @@ Write-Host "Installing Frontend dependencies..."
 Start-Process -FilePath "npm" -ArgumentList "install" -WorkingDirectory "frontend" -Wait
 
 Write-Host "Starting Frontend (Vite)..."
-Start-Process -FilePath "npm" -ArgumentList "run dev" -WorkingDirectory "frontend"
+Start-Process -FilePath "npm.cmd" -ArgumentList "run dev -- --host" -WorkingDirectory "frontend"
 
 Write-Host "All services started! The frontend should be available at http://localhost:5173"
 Write-Host "To stop them, you can close the opened Java and Node command windows."
