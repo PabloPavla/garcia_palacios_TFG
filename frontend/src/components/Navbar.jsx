@@ -17,7 +17,7 @@ const Navigation = () => {
             <Container>
                 <Navbar.Brand as={Link} to={auth ? "/dashboard" : "/"} className="d-flex align-items-center gap-2 fw-bold text-uppercase fs-4" style={{ fontFamily: 'var(--font-heading)' }}>
                     <i className="bi bi-hexagon-fill" style={{ color: 'var(--brand-primary)' }}></i>
-                    ESPORTS<span style={{ color: 'var(--brand-primary)' }}>MGR</span>
+                    CLASH<span style={{ color: 'var(--brand-primary)' }}>MGR</span>
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
