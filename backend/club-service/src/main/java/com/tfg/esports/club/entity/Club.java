@@ -55,6 +55,7 @@ public class Club {
      * No puede ser negativo (constraint {@code chk_riot_points} en BD).
      */
     @Column(name = "riot_points", nullable = false)
+    @Builder.Default
     private Integer riotPoints = 10000;
 
     /**
