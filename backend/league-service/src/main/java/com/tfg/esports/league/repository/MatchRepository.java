@@ -26,6 +26,8 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
      */
     Page<Match> findByLeagueId(Long leagueId, Pageable pageable);
 
+    long countByLeagueId(Long leagueId);
+
     /**
      * Lista los partidos (como local o visitante) de un club.
      *

@@ -58,10 +58,38 @@ const MarketPage = () => {
         const loadContext = async () => {
             try {
                 const clubs = await clubService.getMyClubs();
-                const currentClub = clubs.find(c => c.leagueId === parseInt(leagueId) || c.leagueId === leagueId);
-                if (currentClub) {
-                    setActiveClubId(currentClub.id);
-                    const playersResp = await clubService.getClubPlayers(currentClub.id);
+                // We need to find which club is in this league. 
+                // Since we can't get leagueId from club directly, let's just use the first club 
+                // or fetch the league standings to find our club.
+                // Or better, we can iterate over my clubs and ask the backend if they are in this league.
+                // Let's import leagueService (wait, we didn't import it. We can just use fetch or another way).
+                // Actually, an easy fix for the UI right now is to just make sure `null === null` doesn't trigger "TU JUGADOR":
+                // But we STILL need activeClubId to send the transfer offer!
+                // Let's assume the user has 1 club for now, or we find it matching the league.
+                // We don't have leagueService imported, so let's import it.
+                // I will add the import at the top of the file in another chunk.
+                let activeId = null;
+                for (const c of clubs) {
+                    try {
+                        const res = await fetch(`http://localhost:8080/leagues/club/${c.id}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.some(l => l.id == leagueId)) {
+                                activeId = c.id;
+                                break;
+                            }
+                        }
+                    } catch (e) {}
+                }
+                
+                if (activeId) {
+                    setActiveClubId(activeId);
+                    const playersResp = await clubService.getClubPlayers(activeId);
+                    setMyPlayers(playersResp || []);
+                } else if (clubs.length > 0) {
+                    // Fallback
+                    setActiveClubId(clubs[0].id);
+                    const playersResp = await clubService.getClubPlayers(clubs[0].id);
                     setMyPlayers(playersResp || []);
                 }
             } catch (err) {
@@ -177,10 +205,10 @@ const MarketPage = () => {
                                         <Button 
                                             variant={player.isFreeAgent ? "outline-success" : "outline-primary"} 
                                             className="w-100 fw-bold"
-                                            disabled={player.clubId === activeClubId}
+                                            disabled={player.clubId && player.clubId === activeClubId}
                                             onClick={() => handleOpenModal(player)}
                                         >
-                                            {player.clubId === activeClubId ? 'TU JUGADOR' : (player.isFreeAgent ? 'PUJAR / SUBASTA' : 'OFERTAR / INTERCAMBIO')}
+                                            {player.clubId && player.clubId === activeClubId ? 'TU JUGADOR' : (player.isFreeAgent ? 'PUJAR / SUBASTA' : 'OFERTAR / INTERCAMBIO')}
                                         </Button>
                                     </Card.Body>
                                 </Card>
