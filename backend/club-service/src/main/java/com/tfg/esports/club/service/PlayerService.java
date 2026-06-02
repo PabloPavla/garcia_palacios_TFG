@@ -119,7 +119,7 @@ public class PlayerService {
                         ? request.getPriceRp() : 500)
                 .leagueId(request.getLeagueId() != null ? request.getLeagueId() : 1L)
                 .overallRating(request.getOverallRating())
-                .isFreeAgent(request.getClubId() == null)
+                .isFreeAgent(true)
                 .build();
 
         return PlayerResponse.fromEntity(playerRepository.save(player));
