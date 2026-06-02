@@ -1,0 +1,191 @@
+version: '3.8'
+
+services:
+
+  # ============================================================
+  # BASE DE DATOS MySQL 8
+  # ============================================================
+  mysql:
+    image: mysql:8.0
+    container_name: tfg-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_USER: ${MYSQL_USER:-tfg_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-tfg_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d   # Scripts de inicialización
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - tfg-network
+
+  # Administrador visual de la BD (acceso en http://localhost:9090)
+  adminer:
+    image: adminer:latest
+    container_name: tfg-adminer
+    restart: unless-stopped
+    ports:
+      - "9090:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - tfg-network
+
+  # ============================================================
+  # SERVICE DISCOVERY – EUREKA SERVER
+  # ============================================================
+  eureka-server:
+    build:
+      context: ../backend
+      dockerfile: eureka-server/Dockerfile
+    container_name: tfg-eureka
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    networks:
+      - tfg-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+  # ============================================================
+  # API GATEWAY
+  # ============================================================
+  api-gateway:
+    build:
+      context: ../backend
+      dockerfile: api-gateway/Dockerfile
+    container_name: tfg-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - tfg-network
+
+  # ============================================================
+  # MICROSERVICIO: Auth Service
+  # ============================================================
+  auth-service:
+    build:
+      context: ../backend
+      dockerfile: auth-service/Dockerfile
+    container_name: tfg-auth
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-tfg_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-tfg_pass}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      JWT_EXPIRATION: 3600000        # 1 hora en milisegundos
+      JWT_REFRESH_EXPIRATION: 604800000  # 7 días en milisegundos
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - tfg-network
+
+  # ============================================================
+  # MICROSERVICIO: Club Service
+  # ============================================================
+  club-service:
+    build:
+      context: ../backend
+      dockerfile: club-service/Dockerfile
+    container_name: tfg-club
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/club_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-tfg_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-tfg_pass}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - tfg-network
+
+  # ============================================================
+  # MICROSERVICIO: Transfer Service
+  # ============================================================
+  transfer-service:
+    build:
+      context: ../backend
+      dockerfile: transfer-service/Dockerfile
+    container_name: tfg-transfer
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/transfer_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-tfg_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-tfg_pass}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - tfg-network
+
+  # ============================================================
+  # MICROSERVICIO: League Service
+  # ============================================================
+  league-service:
+    build:
+      context: ../backend
+      dockerfile: league-service/Dockerfile
+    container_name: tfg-league
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/league_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-tfg_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-tfg_pass}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - tfg-network
+
+# ============================================================
+# VOLÚMENES Y REDES
+# ============================================================
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  tfg-network:
+    driver: bridge
