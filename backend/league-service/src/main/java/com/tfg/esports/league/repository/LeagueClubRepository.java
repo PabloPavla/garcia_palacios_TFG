@@ -42,6 +42,10 @@ public interface LeagueClubRepository extends JpaRepository<LeagueClub, LeagueCl
      */
     boolean existsByIdLeagueIdAndIdClubId(Long leagueId, Long clubId);
 
+    boolean existsByIdLeagueIdAndOwnerId(Long leagueId, Long ownerId);
+
+    List<LeagueClub> findByIdLeagueIdAndOwnerId(Long leagueId, Long ownerId);
+
     long countByIdLeagueId(Long leagueId);
 
     /**

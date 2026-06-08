@@ -49,6 +49,16 @@ const leagueService = {
     getLeaguesByClub: async (clubId) => {
         const response = await api.get(`/leagues/by-club?clubId=${clubId}`);
         return response.data;
+    },
+
+    joinLeague: async (leagueId) => {
+        const response = await api.post(`/leagues/${leagueId}/join`);
+        return response.data;
+    },
+
+    getMyLeagues: async () => {
+        const response = await api.get('/leagues/my-leagues');
+        return response.data;
     }
 };
 

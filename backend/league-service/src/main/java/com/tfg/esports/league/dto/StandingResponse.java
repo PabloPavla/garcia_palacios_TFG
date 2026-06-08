@@ -13,6 +13,7 @@ import lombok.Data;
 @Builder
 public class StandingResponse {
     private Long clubId;
+    private Long ownerId;
     private int points;
     private int wins;
     private int draws;
@@ -25,6 +26,7 @@ public class StandingResponse {
     public static StandingResponse fromEntity(LeagueClub lc) {
         return StandingResponse.builder()
                 .clubId(lc.getId().getClubId())
+                .ownerId(lc.getOwnerId())
                 .points(lc.getPoints())
                 .wins(lc.getWins())
                 .draws(lc.getDraws())

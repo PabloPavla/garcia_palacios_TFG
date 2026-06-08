@@ -42,10 +42,25 @@ public class LeagueController {
     public ResponseEntity<Map<String, String>> enrollClub(
             @PathVariable Long id,
             @RequestParam Long clubId,
-            @RequestHeader("X-Auth-User-Id") Long userId) {
+            @RequestHeader("X-Auth-User-Id") Long userId,
+            @RequestHeader(value = "X-Auth-Role", required = false) String role) {
 
-        leagueService.enrollClub(id, clubId, userId);
+        leagueService.enrollClub(id, clubId, userId, role);
         return ResponseEntity.ok(Map.of("message", "Club inscrito correctamente"));
+    }
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<Map<String, String>> joinLeague(
+            @PathVariable Long id,
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        leagueService.joinLeague(id, userId);
+        return ResponseEntity.ok(Map.of("message", "Inscripción en la liga completada con éxito"));
+    }
+
+    @GetMapping("/my-leagues")
+    public ResponseEntity<List<League>> getMyLeagues(
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        return ResponseEntity.ok(leagueService.getLeaguesByUserId(userId));
     }
 
     @PostMapping
