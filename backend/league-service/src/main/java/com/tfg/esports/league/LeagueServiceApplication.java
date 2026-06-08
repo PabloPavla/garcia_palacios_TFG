@@ -6,6 +6,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 /**
  * Punto de entrada del League Service.
  *
@@ -17,6 +19,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
+@EnableScheduling
 public class LeagueServiceApplication {
 
     /**

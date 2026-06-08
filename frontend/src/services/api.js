@@ -16,6 +16,23 @@ const api = axios.create({
 })
 
 /**
+ * Interceptor de solicitud: agrega el token Bearer a cada solicitud.
+ * 
+ * Garantiza que el token siempre se envíe en los headers de autenticación,
+ * incluso si se ha actualizado o cambiado en localStorage.
+ */
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken')
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+/**
  * Interceptor de respuesta: gestiona la expiración del token JWT.
  *
  * Si el servidor devuelve 401 Unauthorized y hay un refresh token

@@ -29,71 +29,124 @@ public class TournamentService {
     private final ClubClient clubClient;
 
     @Transactional
-    public void generateTournament(Long leagueId) {
+    public void generateTournament(Long leagueId, Long userId, String role) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("Liga no encontrada"));
 
-        List<LeagueClub> clubs = leagueClubRepository.findStandingsByLeagueId(leagueId);
-        if (clubs.size() < 4) {
-            throw new IllegalArgumentException("Se necesitan al menos 4 clubes para generar el torneo.");
+        // Validar que solo el creador (admin de la liga) o el administrador del sistema pueda iniciar el torneo
+        if (!"ROLE_ADMIN".equals(role) && !userId.equals(league.getCreatorUserId())) {
+            throw new IllegalArgumentException("Solo el creador de la liga (administrador) puede comenzar el torneo.");
         }
 
-        // Check if a tournament already exists
-        long existingTournamentMatches = matchRepository.findByLeagueId(leagueId, org.springframework.data.domain.Pageable.unpaged())
+        List<LeagueClub> clubs = leagueClubRepository.findStandingsByLeagueId(leagueId);
+        if (clubs.size() < 2) {
+            throw new IllegalArgumentException("Se necesitan al menos 2 clubes para comenzar el torneo.");
+        }
+
+        // Validar que el número de clubes sea par
+        if (clubs.size() % 2 != 0) {
+            throw new IllegalArgumentException("El torneo solo puede comenzar con un número par de clubes (2, 4, 6, 8, etc.).");
+        }
+
+        // Validar que todos los clubes tengan al menos un jugador en cada una de las 5 posiciones
+        for (LeagueClub club : clubs) {
+            Long clubId = club.getId().getClubId();
+            List<java.util.Map<String, Object>> players;
+            try {
+                players = clubClient.getClubPlayers(clubId);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("No se pudieron verificar los jugadores del club con ID " + clubId + ": " + e.getMessage());
+            }
+
+            if (players == null || players.isEmpty()) {
+                throw new IllegalArgumentException("El club " + clubId + " no tiene jugadores registrados. Cada equipo debe tener al menos un jugador por rol (TOP, JUNGLE, MID, ADC, SUPPORT).");
+            }
+
+            java.util.Set<String> roles = players.stream()
+                    .map(p -> (String) p.get("lolRole"))
+                    .filter(java.util.Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            List<String> missingRoles = new java.util.ArrayList<>();
+            for (String roleName : List.of("TOP", "JUNGLE", "MID", "ADC", "SUPPORT")) {
+                if (!roles.contains(roleName)) {
+                    missingRoles.add(roleName);
+                }
+            }
+
+            if (!missingRoles.isEmpty()) {
+                throw new IllegalArgumentException("El club con ID " + clubId + " tiene posiciones vacías en su plantilla: " + String.join(", ", missingRoles) + ". Debe fichar al menos un jugador por rol.");
+            }
+        }
+
+        // Validar si ya hay partidos en la liga
+        long existingMatches = matchRepository.findByLeagueId(leagueId, org.springframework.data.domain.Pageable.unpaged())
                 .stream()
-                .filter(m -> m.getTournamentRound() != null)
                 .count();
 
-        if (existingTournamentMatches > 0) {
-            throw new IllegalArgumentException("El torneo ya ha sido generado para esta liga.");
+        if (existingMatches > 0) {
+            throw new IllegalArgumentException("Ya existen partidos en esta liga. El torneo ya ha comenzado.");
         }
 
-        // Shuffle and pick 4
-        Collections.shuffle(clubs);
-        List<LeagueClub> participants = clubs.subList(0, 4);
+        // Generar calendario Round-Robin (Berger)
+        int numTeams = clubs.size();
+        for (int round = 0; round < numTeams - 1; round++) {
+            LocalDateTime roundTime = LocalDateTime.now().plusMinutes(round * 10);
+            for (int i = 0; i < numTeams / 2; i++) {
+                int homeIdx = (round + i) % (numTeams - 1);
+                int awayIdx = (numTeams - 1 - i + round) % (numTeams - 1);
+                if (i == 0) {
+                    awayIdx = numTeams - 1;
+                }
+                Long homeClubId = clubs.get(homeIdx).getId().getClubId();
+                Long awayClubId = clubs.get(awayIdx).getId().getClubId();
 
-        // Create 2 Semifinal Matches
-        createTournamentMatch(league, participants.get(0).getId().getClubId(), participants.get(1).getId().getClubId(), "SEMIFINAL");
-        createTournamentMatch(league, participants.get(2).getId().getClubId(), participants.get(3).getId().getClubId(), "SEMIFINAL");
+                createTournamentMatch(league, homeClubId, awayClubId, roundTime, "Jornada " + (round + 1));
+            }
+        }
+
+        // Simular la Jornada 1 de forma inmediata
+        List<Match> round1Matches = matchRepository.findByLeagueId(leagueId, org.springframework.data.domain.Pageable.unpaged())
+                .stream()
+                .filter(m -> "Jornada 1".equals(m.getTournamentRound()))
+                .toList();
+
+        for (Match match : round1Matches) {
+            simulateMatch(match);
+        }
     }
 
-    private void createTournamentMatch(League league, Long homeClubId, Long awayClubId, String round) {
+    private void createTournamentMatch(League league, Long homeClubId, Long awayClubId, LocalDateTime matchDate, String roundName) {
         Match match = Match.builder()
                 .league(league)
                 .homeClubId(homeClubId)
                 .awayClubId(awayClubId)
-                .matchDate(LocalDateTime.now().plusDays(1))
-                .wagerRp(league.getMatchWagerRp())
+                .matchDate(matchDate)
+                .wagerRp(0)  // Sin apuestas monetarias en partidos de torneo
                 .status(MatchStatus.SCHEDULED)
                 .homeWagerAccepted(false)
                 .awayWagerAccepted(false)
-                .tournamentRound(round)
+                .tournamentRound(roundName)
                 .build();
+        
         matchRepository.save(match);
     }
 
+    /**
+     * Programador automático para simular partidos planificados.
+     * Se ejecuta cada 10 segundos buscando partidos programados pendientes cuya fecha sea menor o igual a ahora.
+     */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 10000)
     @Transactional
-    public void acceptWager(Long matchId, Long clubId) {
-        Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
-
-        if (match.getStatus() == MatchStatus.COMPLETED) {
-            throw new IllegalArgumentException("El partido ya ha finalizado.");
-        }
-
-        if (match.getHomeClubId().equals(clubId)) {
-            match.setHomeWagerAccepted(true);
-        } else if (match.getAwayClubId().equals(clubId)) {
-            match.setAwayWagerAccepted(true);
-        } else {
-            throw new IllegalArgumentException("El club no participa en este partido.");
-        }
-
-        matchRepository.save(match);
-
-        // If both accepted, simulate the match!
-        if (Boolean.TRUE.equals(match.getHomeWagerAccepted()) && Boolean.TRUE.equals(match.getAwayWagerAccepted())) {
-            simulateMatch(match);
+    public void simulateScheduledMatches() {
+        List<Match> pendingMatches = matchRepository.findByStatusAndMatchDateBefore(
+                MatchStatus.SCHEDULED, LocalDateTime.now());
+        for (Match match : pendingMatches) {
+            try {
+                simulateMatch(match);
+            } catch (Exception e) {
+                System.err.println("Error al simular partido programado " + match.getId() + ": " + e.getMessage());
+            }
         }
     }
 
@@ -123,54 +176,21 @@ public class TournamentService {
         } else if (awayPower > homePower) {
             homeGoals = 1; awayGoals = 2;
         } else {
-            // Draw? In tournament we need a winner, give it randomly
-            if (Math.random() > 0.5) {
-                homeGoals = 2; awayGoals = 1;
-            } else {
-                homeGoals = 1; awayGoals = 2;
-            }
+            // Draw - can happen in league matches
+            homeGoals = 1; awayGoals = 1;
         }
 
         MatchScoreRequest scoreRequest = new MatchScoreRequest();
         scoreRequest.setHomeScore(homeGoals);
         scoreRequest.setAwayScore(awayGoals);
 
-        // Deduct wagers first, because recordResult will reward them
-        clubClient.updateRiotPoints(match.getHomeClubId(), -match.getWagerRp());
-        clubClient.updateRiotPoints(match.getAwayClubId(), -match.getWagerRp());
-
-        matchService.recordResult(match.getId(), scoreRequest);
-
-        // If this was a semifinal, check if both are completed to create FINAL
-        if ("SEMIFINAL".equals(match.getTournamentRound())) {
-            checkAndCreateFinal(match.getLeague());
-        }
+        // Record result WITHOUT wagers (no RP deduction or rewards)
+        matchService.recordResultForTournament(match.getId(), scoreRequest);
     }
 
-    private void checkAndCreateFinal(League league) {
-        List<Match> semifinals = matchRepository.findByLeagueId(league.getId(), org.springframework.data.domain.Pageable.unpaged())
-                .stream()
-                .filter(m -> "SEMIFINAL".equals(m.getTournamentRound()))
-                .collect(Collectors.toList());
-
-        if (semifinals.size() == 2) {
-            Match s1 = semifinals.get(0);
-            Match s2 = semifinals.get(1);
-
-            if (s1.getStatus() == MatchStatus.COMPLETED && s2.getStatus() == MatchStatus.COMPLETED) {
-                Long winner1 = s1.getHomeScore() > s1.getAwayScore() ? s1.getHomeClubId() : s1.getAwayClubId();
-                Long winner2 = s2.getHomeScore() > s2.getAwayScore() ? s2.getHomeClubId() : s2.getAwayClubId();
-
-                // Ensure final is not already created
-                long finalCount = matchRepository.findByLeagueId(league.getId(), org.springframework.data.domain.Pageable.unpaged())
-                        .stream()
-                        .filter(m -> "FINAL".equals(m.getTournamentRound()))
-                        .count();
-
-                if (finalCount == 0) {
-                    createTournamentMatch(league, winner1, winner2, "FINAL");
-                }
-            }
-        }
+    @Transactional
+    public void acceptWager(Long matchId, Long clubId) {
+        // This method is kept for backwards compatibility but does nothing
+        // since league matches are simulated immediately
     }
 }

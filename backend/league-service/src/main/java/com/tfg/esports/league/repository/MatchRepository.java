@@ -53,4 +53,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
                OR (m.homeClubId = :away AND m.awayClubId = :home))
         """)
     boolean existsMatchBetweenClubs(Long leagueId, Long home, Long away);
+
+    List<Match> findByStatusAndMatchDateBefore(com.tfg.esports.league.entity.MatchStatus status, java.time.LocalDateTime date);
 }

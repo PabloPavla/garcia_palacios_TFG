@@ -75,9 +75,9 @@ public class MatchController {
     @PostMapping("/league/{leagueId}/tournament")
     public ResponseEntity<?> generateTournament(
             @PathVariable Long leagueId,
-            @RequestHeader("X-Auth-User-Id") Long userId) {
-        // En una app real podríamos comprobar si el userId es el creador de la liga
-        tournamentService.generateTournament(leagueId);
+            @RequestHeader("X-Auth-User-Id") Long userId,
+            @RequestHeader(value = "X-Auth-Role", required = false) String role) {
+        tournamentService.generateTournament(leagueId, userId, role);
         return ResponseEntity.ok(Map.of("message", "Torneo generado correctamente"));
     }
 

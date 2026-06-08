@@ -13,4 +13,7 @@ public interface ClubClient {
 
     @org.springframework.web.bind.annotation.GetMapping("/clubs/{id}/rating")
     Integer getClubRating(@PathVariable("id") Long id);
+
+    @org.springframework.web.bind.annotation.GetMapping("/clubs/{id}/players")
+    java.util.List<java.util.Map<String, Object>> getClubPlayers(@org.springframework.web.bind.annotation.PathVariable("id") Long id);
 }
