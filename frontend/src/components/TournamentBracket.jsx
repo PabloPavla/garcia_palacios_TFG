@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Button, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Alert, Badge, Nav } from 'react-bootstrap';
 import leagueService from '../services/leagueService';
 import clubService from '../services/clubService';
 
@@ -8,32 +8,76 @@ const TournamentBracket = ({ leagueId, activeClubId }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [clubsCache, setClubsCache] = useState({});
+    const [activeRound, setActiveRound] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const loadTournamentData = async () => {
+    const getRoundNum = (roundStr) => {
+        if (!roundStr) return 999;
+        const numMatch = roundStr.match(/\d+/);
+        return numMatch ? parseInt(numMatch[0], 10) : 999;
+    };
+
+    const loadTournamentData = async (silent = false) => {
         try {
-            setLoading(true);
-            // We assume there's an endpoint to get league matches
+            if (!silent) setLoading(true);
             const response = await leagueService.getLeagueMatches(leagueId);
-            const tournamentMatches = response.content.filter(m => m.tournamentRound);
+            // Filtrar partidos que tengan ronda asignada
+            const tournamentMatches = (response.content || []).filter(m => m.tournamentRound);
             setMatches(tournamentMatches);
 
-            // Fetch clubs for cache
-            const cCache = {};
+            // Obtener clubes para cache
+            const cCache = { ...clubsCache };
+            let cacheUpdated = false;
             for (let m of tournamentMatches) {
                 if (!cCache[m.homeClubId]) {
-                    const h = await clubService.getClubById(m.homeClubId);
-                    cCache[m.homeClubId] = h.acronym;
+                    try {
+                        const h = await clubService.getClubById(m.homeClubId);
+                        cCache[m.homeClubId] = `[${h.acronym}] ${h.name}`;
+                        cacheUpdated = true;
+                    } catch (e) {
+                        cCache[m.homeClubId] = `Club ${m.homeClubId}`;
+                    }
                 }
                 if (!cCache[m.awayClubId]) {
-                    const a = await clubService.getClubById(m.awayClubId);
-                    cCache[m.awayClubId] = a.acronym;
+                    try {
+                        const a = await clubService.getClubById(m.awayClubId);
+                        cCache[m.awayClubId] = `[${a.acronym}] ${a.name}`;
+                        cacheUpdated = true;
+                    } catch (e) {
+                        cCache[m.awayClubId] = `Club ${m.awayClubId}`;
+                    }
                 }
             }
-            setClubsCache(cCache);
+            if (cacheUpdated) {
+                setClubsCache(cCache);
+            }
+
+            // Agrupar y obtener las rondas disponibles ordenadas numéricamente
+            const uniqueRounds = Array.from(new Set(tournamentMatches.map(m => m.tournamentRound)))
+                .sort((a, b) => getRoundNum(a) - getRoundNum(b));
+
+            if (uniqueRounds.length > 0) {
+                // Si la ronda activa no está inicializada o ya no existe en la lista de rondas
+                setActiveRound(prev => {
+                    if (prev && uniqueRounds.includes(prev)) {
+                        return prev;
+                    }
+                    // Seleccionar la primera ronda que tenga partidos SCHEDULED pendientes
+                    for (const r of uniqueRounds) {
+                        const rMatches = tournamentMatches.filter(m => m.tournamentRound === r);
+                        if (rMatches.some(m => m.status === 'SCHEDULED')) {
+                            return r;
+                        }
+                    }
+                    // Si todos están completados, seleccionar la primera ronda
+                    return uniqueRounds[0];
+                });
+            }
         } catch (err) {
-            setError('Error al cargar el torneo');
+            setError('Error al cargar la información del torneo.');
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     };
 
@@ -41,79 +85,173 @@ const TournamentBracket = ({ leagueId, activeClubId }) => {
         loadTournamentData();
     }, [leagueId]);
 
-    const handleAcceptWager = async (matchId) => {
+    // Intervalo de auto-refresco si hay partidos programados
+    useEffect(() => {
+        const hasScheduled = matches.some(m => m.status === 'SCHEDULED');
+        if (!hasScheduled) return;
+
+        const interval = setInterval(() => {
+            loadTournamentData(true);
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, [matches, leagueId]);
+
+    const handleManualRefresh = () => {
+        setIsRefreshing(true);
+        loadTournamentData(true);
+    };
+
+    const formatMatchTime = (dateStr) => {
+        if (!dateStr) return '';
         try {
-            await leagueService.acceptWager(matchId, activeClubId);
-            alert('¡Apuesta aceptada!');
-            loadTournamentData(); // Recargar para ver si ya se simuló
-        } catch (err) {
-            alert('Error al aceptar la apuesta: ' + (err.response?.data?.message || err.message));
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return '';
         }
     };
 
-    if (loading) return <div className="text-center py-5"><Spinner animation="border" variant="gold" style={{color: 'var(--brand-gold)'}}/></div>;
-    if (error) return <Alert variant="warning">{error}</Alert>;
-
-    const semifinals = matches.filter(m => m.tournamentRound === 'SEMIFINAL');
-    const finals = matches.filter(m => m.tournamentRound === 'FINAL');
-
-    if (matches.length === 0) {
-        return <Alert variant="info" className="bg-dark text-white border-secondary">El torneo aún no ha sido generado.</Alert>;
-    }
-
-    const renderMatchBox = (match) => {
-        if (!match) return <div className="match-box empty" style={{ border: '1px solid #333', padding: '10px', borderRadius: '5px', height: '100px', backgroundColor: 'rgba(0,0,0,0.5)' }}></div>;
-        
-        const isParticipant = match.homeClubId === activeClubId || match.awayClubId === activeClubId;
-        const participantAccepted = (match.homeClubId === activeClubId && match.homeWagerAccepted) || 
-                                    (match.awayClubId === activeClubId && match.awayWagerAccepted);
-
-        return (
-            <div className="match-box p-3 mb-3" style={{ border: '1px solid var(--brand-gold)', borderRadius: '8px', backgroundColor: 'rgba(20,20,20,0.8)' }}>
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                    <span className={`fw-bold ${match.homeScore > match.awayScore ? 'text-warning' : 'text-white'}`}>{clubsCache[match.homeClubId] || 'Cargando...'}</span>
-                    <span className="fw-bold text-white fs-5">{match.status === 'COMPLETED' ? match.homeScore : '-'}</span>
-                </div>
-                <div className="d-flex justify-content-between align-items-center">
-                    <span className={`fw-bold ${match.awayScore > match.homeScore ? 'text-warning' : 'text-white'}`}>{clubsCache[match.awayClubId] || 'Cargando...'}</span>
-                    <span className="fw-bold text-white fs-5">{match.status === 'COMPLETED' ? match.awayScore : '-'}</span>
-                </div>
-                
-                {match.status === 'SCHEDULED' && (
-                    <div className="mt-3 text-center border-top border-secondary pt-2">
-                        {isParticipant ? (
-                            participantAccepted ? (
-                                <Badge bg="success">Esperando al rival...</Badge>
-                            ) : (
-                                <Button variant="outline-gold" size="sm" style={{color: 'var(--brand-gold)', borderColor: 'var(--brand-gold)'}} onClick={() => handleAcceptWager(match.id)}>
-                                    Apostar y Jugar
-                                </Button>
-                            )
-                        ) : (
-                            <Badge bg="secondary">Pendiente</Badge>
-                        )}
-                    </div>
-                )}
-            </div>
-        );
+    const getTimeRemainingStr = (matchDateStr) => {
+        const matchTime = new Date(matchDateStr).getTime();
+        const now = Date.now();
+        const diffMs = matchTime - now;
+        if (diffMs <= 0) {
+            return "Simulando...";
+        }
+        const diffMin = Math.ceil(diffMs / 60000);
+        return `En ${diffMin} min`;
     };
 
+    if (loading) {
+        return (
+            <div className="text-center py-5">
+                <Spinner animation="grow" variant="gold" style={{ color: 'var(--brand-gold)' }} />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <Alert variant="warning">{error}</Alert>;
+    }
+
+    if (matches.length === 0) {
+        return (
+            <Alert variant="info" className="bg-dark text-white border-secondary text-center">
+                El torneo aún no ha comenzado. Espera a que el creador de la liga comience la competición.
+            </Alert>
+        );
+    }
+
+    const uniqueRounds = Array.from(new Set(matches.map(m => m.tournamentRound)))
+        .sort((a, b) => getRoundNum(a) - getRoundNum(b));
+
+    const activeRoundMatches = matches.filter(m => m.tournamentRound === activeRound);
+
     return (
-        <div className="tournament-bracket mt-4 p-4 rounded" style={{ backgroundColor: 'rgba(0,0,0,0.4)', border: '1px solid #333' }}>
-            <h3 className="text-center text-white mb-5 fw-bold"><i className="bi bi-diagram-2 text-warning me-2"></i> ELIMINATORIAS</h3>
-            <Row className="align-items-center">
-                <Col md={4}>
-                    <h5 className="text-center text-secondary mb-4">SEMIFINALES</h5>
-                    {renderMatchBox(semifinals[0])}
-                    {renderMatchBox(semifinals[1])}
-                </Col>
-                <Col md={4} className="d-flex justify-content-center">
-                    <i className="bi bi-arrow-right display-4 text-secondary opacity-50"></i>
-                </Col>
-                <Col md={4}>
-                    <h5 className="text-center text-secondary mb-4">GRAN FINAL</h5>
-                    {renderMatchBox(finals.length > 0 ? finals[0] : null)}
-                </Col>
+        <div className="tournament-bracket mt-4 p-4 rounded animate-fade-in" style={{ backgroundColor: 'rgba(0,0,0,0.4)', border: '1px solid #333' }}>
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h3 className="text-white mb-0 fw-bold">
+                        <i className="bi bi-calendar-event text-warning me-2"></i> CALENDARIO DEL TORNEO
+                    </h3>
+                    <p className="text-secondary mb-0">Partidos programados y resultados en tiempo real</p>
+                </div>
+                <Button 
+                    variant="outline-secondary" 
+                    size="sm" 
+                    onClick={handleManualRefresh}
+                    disabled={isRefreshing}
+                    className="text-white d-flex align-items-center gap-2"
+                >
+                    {isRefreshing ? <Spinner animation="border" size="sm" /> : <i className="bi bi-arrow-clockwise"></i>}
+                    Actualizar
+                </Button>
+            </div>
+
+            {/* Selector de Rondas / Jornadas */}
+            <div className="mb-4 overflow-auto pb-2">
+                <Nav variant="pills" className="flex-nowrap gap-2" activeKey={activeRound}>
+                    {uniqueRounds.map(r => {
+                        const rMatches = matches.filter(m => m.tournamentRound === r);
+                        const allCompleted = rMatches.every(m => m.status === 'COMPLETED');
+                        return (
+                            <Nav.Item key={r}>
+                                <Nav.Link 
+                                    eventKey={r} 
+                                    onClick={() => setActiveRound(r)}
+                                    className={`px-3 py-2 fw-bold rounded-pill text-uppercase ${
+                                        activeRound === r 
+                                            ? 'bg-warning text-dark' 
+                                            : allCompleted 
+                                                ? 'bg-dark text-success border border-success border-opacity-25' 
+                                                : 'bg-dark text-secondary border border-secondary border-opacity-25'
+                                    }`}
+                                >
+                                    {r} {allCompleted && <i className="bi bi-check-circle-fill ms-1"></i>}
+                                </Nav.Link>
+                            </Nav.Item>
+                        );
+                    })}
+                </Nav>
+            </div>
+
+            {/* Grid de Partidos */}
+            <Row className="g-4">
+                {activeRoundMatches.map(match => {
+                    const isCompleted = match.status === 'COMPLETED';
+                    const homeWinner = isCompleted && match.homeScore > match.awayScore;
+                    const awayWinner = isCompleted && match.awayScore > match.homeScore;
+
+                    return (
+                        <Col key={match.id} md={6} lg={4}>
+                            <Card className="border-secondary h-100 shadow-sm" style={{ backgroundColor: 'rgba(20,20,20,0.85)', minHeight: '160px' }}>
+                                <Card.Body className="d-flex flex-column justify-content-between p-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <Badge bg="dark" className="text-secondary border border-secondary border-opacity-50">
+                                            ID: {match.id}
+                                        </Badge>
+                                        {isCompleted ? (
+                                            <Badge bg="success" className="bg-opacity-25 text-success">
+                                                Finalizado
+                                            </Badge>
+                                        ) : (
+                                            <Badge bg="warning" className="bg-opacity-25 text-warning d-flex align-items-center gap-1">
+                                                <i className="bi bi-clock-fill"></i>
+                                                {formatMatchTime(match.matchDate)} ({getTimeRemainingStr(match.matchDate)})
+                                            </Badge>
+                                        )}
+                                    </div>
+
+                                    {/* Marcador */}
+                                    <div className="flex-grow-1 d-flex flex-column justify-content-center gap-2 py-2">
+                                        {/* Home Team */}
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span className={`fw-bold text-truncate ${homeWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`} style={{ maxWidth: '80%' }}>
+                                                {homeWinner && <i className="bi bi-caret-right-fill text-warning me-1"></i>}
+                                                {clubsCache[match.homeClubId] || `Club ${match.homeClubId}`}
+                                            </span>
+                                            <span className={`fw-bold fs-4 ${homeWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`}>
+                                                {isCompleted ? match.homeScore : '-'}
+                                            </span>
+                                        </div>
+
+                                        {/* Away Team */}
+                                        <div className="d-flex justify-content-between align-items-center">
+                                            <span className={`fw-bold text-truncate ${awayWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`} style={{ maxWidth: '80%' }}>
+                                                {awayWinner && <i className="bi bi-caret-right-fill text-warning me-1"></i>}
+                                                {clubsCache[match.awayClubId] || `Club ${match.awayClubId}`}
+                                            </span>
+                                            <span className={`fw-bold fs-4 ${awayWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`}>
+                                                {isCompleted ? match.awayScore : '-'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    );
+                })}
             </Row>
         </div>
     );

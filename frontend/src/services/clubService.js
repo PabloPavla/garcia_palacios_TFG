@@ -21,6 +21,11 @@ const clubService = {
         return response.data;
     },
 
+    deleteClub: async (clubId) => {
+        const response = await api.delete(`/clubs/${clubId}`);
+        return response.data;
+    },
+
     getClubPlayers: async (clubId) => {
         const response = await api.get(`/clubs/${clubId}/players`);
         return response.data;

@@ -15,6 +15,7 @@ const LeaguePage = () => {
     const [clubsCache, setClubsCache] = useState({});
     const [clubsDataCache, setClubsDataCache] = useState({});
     const [activeTab, setActiveTab] = useState('standings'); // 'standings' | 'tournament'
+    const [hasTournamentStarted, setHasTournamentStarted] = useState(false);
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -70,6 +71,16 @@ const LeaguePage = () => {
             }
             setClubsCache(cCache);
             setClubsDataCache(cDataCache);
+
+            // Verificar si el torneo ya ha comenzado buscando partidos con tournamentRound asignado
+            try {
+                const matchesResponse = await leagueService.getLeagueMatches(activeLeagueId);
+                const hasTourney = matchesResponse.content && matchesResponse.content.some(m => m.tournamentRound);
+                setHasTournamentStarted(hasTourney);
+            } catch (e) {
+                console.error("Error al verificar el estado del torneo:", e);
+                setHasTournamentStarted(false);
+            }
         } catch (err) {
             setError('Error al cargar la clasificación.');
         } finally {
@@ -252,7 +263,7 @@ const LeaguePage = () => {
                             >
                                 <i className="bi bi-list-ol me-1"></i> Clasificación
                             </Button>
-                            {standings.length >= 4 && (
+                            {(standings.length >= 2 || hasTournamentStarted) && (
                                 <Button 
                                     variant={activeTab === 'tournament' ? 'gold' : 'link'} 
                                     className={`text-decoration-none fw-bold ${activeTab === 'tournament' ? 'text-dark bg-warning' : 'text-secondary'}`}
@@ -310,18 +321,19 @@ const LeaguePage = () => {
                                 )}
                             </tbody>
                         </Table>
-                        {isCreator && standings.length >= 4 && (
+                        {isCreator && standings.length >= 2 && !hasTournamentStarted && (
                             <div className="p-3 text-center border-top border-secondary" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                                 <Button variant="outline-warning" onClick={async () => {
                                     try {
                                         await leagueService.generateTournament(activeLeagueId);
-                                        alert("Torneo generado con éxito");
+                                        alert("¡Torneo comenzado con éxito!");
+                                        setHasTournamentStarted(true);
                                         setActiveTab('tournament');
                                     } catch (e) {
-                                        alert("No se pudo generar el torneo: " + (e.response?.data?.message || e.message));
+                                        alert("No se pudo comenzar el torneo: " + (e.response?.data?.message || e.message));
                                     }
                                 }}>
-                                    <i className="bi bi-diagram-2 me-1"></i> Generar Torneo (Administrador)
+                                    <i className="bi bi-diagram-2 me-1"></i> Comenzar Torneo (Administrador)
                                 </Button>
                             </div>
                         )}

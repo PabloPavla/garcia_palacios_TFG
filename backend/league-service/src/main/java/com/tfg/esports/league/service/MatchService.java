@@ -123,6 +123,32 @@ public class MatchService {
     }
 
     /**
+     * Registra el resultado de un partido de torneo (sin apuestas).
+     * Solo actualiza la clasificación.
+     *
+     * @param id      ID del partido
+     * @param request resultado
+     * @return partido actualizado
+     */
+    @Transactional
+    public MatchResponse recordResultForTournament(Long id, MatchScoreRequest request) {
+        Match match = matchRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+
+        if (match.getStatus() == MatchStatus.COMPLETED) {
+            throw new IllegalArgumentException("El partido ya está completado");
+        }
+
+        match.setHomeScore(request.getHomeScore());
+        match.setAwayScore(request.getAwayScore());
+        match.setStatus(MatchStatus.COMPLETED);
+
+        // Al guardar, el trigger 'trg_update_standings_after_match' actualizará la clasificación
+        // No hay lógica de apuestas en partidos de torneo
+        return MatchResponse.fromEntity(matchRepository.save(match));
+    }
+
+    /**
      * Cancela un partido.
      *
      * @param id ID del partido

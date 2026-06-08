@@ -107,11 +107,15 @@ public class ClubController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteClub(
             @PathVariable Long id,
-            @RequestHeader("X-Auth-Role") String role) {
-        if (!"ROLE_ADMIN".equals(role)) {
+            @RequestHeader(value = "X-Auth-Role", required = false) String role,
+            @RequestHeader(value = "X-Auth-User-Id", required = false) Long userId) {
+        
+        ClubResponse club = clubService.getClubById(id);
+        if (!"ROLE_ADMIN".equals(role) && !club.getOwnerId().equals(userId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Solo los administradores pueden eliminar clubes"));
+                    .body(Map.of("error", "No tienes permiso para eliminar este club"));
         }
+        
         clubService.deleteClub(id);
         return ResponseEntity.ok(Map.of("message", "Club eliminado correctamente"));
     }
