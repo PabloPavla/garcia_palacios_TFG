@@ -9,6 +9,7 @@ import TournamentBracket from '../components/TournamentBracket';
 const LeaguePage = () => {
     const { user } = useAuth();
     const [leagues, setLeagues] = useState([]);
+    const [myLeagues, setMyLeagues] = useState([]);
     const [activeLeagueId, setActiveLeagueId] = useState(null);
     const [standings, setStandings] = useState([]);
     const [clubsCache, setClubsCache] = useState({});
@@ -20,7 +21,7 @@ const LeaguePage = () => {
     
     // Modal Crear Liga
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newLeagueData, setNewLeagueData] = useState({ name: '', season: '2024', initialRp: 10000, maxClubs: 10, visibility: 'PUBLIC', matchWagerRp: 500 });
+    const [newLeagueData, setNewLeagueData] = useState({ name: '', season: '2024', initialRp: 10000, maxClubs: 4, visibility: 'PUBLIC', matchWagerRp: 500 });
     
     // Modal Unirse a Liga
     const [showJoinModal, setShowJoinModal] = useState(false);
@@ -29,8 +30,12 @@ const LeaguePage = () => {
     const loadLeagues = async () => {
         try {
             setLoading(true);
-            const data = await leagueService.getAllLeagues();
+            const [data, myLeaguesData] = await Promise.all([
+                leagueService.getAllLeagues(),
+                leagueService.getMyLeagues()
+            ]);
             setLeagues(data);
+            setMyLeagues(myLeaguesData || []);
             if (data.length > 0 && !activeLeagueId) {
                 setActiveLeagueId(data[0].id);
             }
@@ -98,6 +103,20 @@ const LeaguePage = () => {
         }
     };
 
+    const handleJoinLeagueOnly = async () => {
+        try {
+            setLoading(true);
+            await leagueService.joinLeague(activeLeagueId);
+            alert('¡Te has inscrito en la liga con éxito! Ahora puedes crear tu club.');
+            await loadLeagues();
+            await fetchAndSetStandings();
+        } catch (err) {
+            alert('Error al inscribirse en la liga: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleJoinLeague = async (e) => {
         e.preventDefault();
         try {
@@ -109,12 +128,19 @@ const LeaguePage = () => {
             });
             
             // 2. Enroll in League
-            await leagueService.enrollClub(activeLeagueId, newClub.id);
+            try {
+                await leagueService.enrollClub(activeLeagueId, newClub.id);
+            } catch (err) {
+                // Rollback club creation
+                await clubService.deleteClub(newClub.id);
+                throw err;
+            }
             
             setShowJoinModal(false);
             // Reload standings and cache
             await fetchAndSetStandings();
-            alert('¡Te has unido a la liga con éxito!');
+            await loadLeagues();
+            alert('¡Club creado e inscrito en la liga con éxito!');
         } catch (err) {
             alert('Error al unirse a la liga: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
         }
@@ -181,19 +207,34 @@ const LeaguePage = () => {
                                 {activeLeague.name} <span className="text-secondary fs-5">Temporada {activeLeague.season}</span>
                             </h3>
                             
-                            <div className="d-flex gap-2">
-                                {activeLeague.visibility === 'PRIVATE' ? (
-                                    isCreator && (
-                                        <Button variant="danger" onClick={() => setShowJoinModal(true)}>
-                                            <i className="bi bi-person-plus-fill me-1"></i> Inscribir Club (Admin)
-                                        </Button>
-                                    )
-                                ) : (
-                                    <Button variant={activeLeague.visibility === 'FRIENDS_ONLY' ? 'info' : 'primary'} onClick={() => setShowJoinModal(true)}>
-                                        <i className="bi bi-person-plus-fill me-1"></i> 
-                                        {activeLeague.visibility === 'FRIENDS_ONLY' ? 'Unirse (Solo Amigos)' : 'Unirse a la Liga'}
-                                    </Button>
-                                )}
+                            <div className="d-flex gap-2 align-items-center">
+                                {(() => {
+                                    const isJoined = myLeagues.some(l => l.id === Number(activeLeagueId));
+                                    const hasClub = standings.some(s => s.ownerId === user?.id || clubsDataCache[s.clubId]?.ownerId === user?.id);
+                                    
+                                    if (!isJoined) {
+                                        return (
+                                            <Button variant="success" onClick={handleJoinLeagueOnly}>
+                                                <i className="bi bi-plus-circle-fill me-1"></i> Inscribirse a la Liga
+                                            </Button>
+                                        );
+                                    } else if (!hasClub || (user && user.role === 'ROLE_ADMIN')) {
+                                        return (
+                                            <Button variant="primary" onClick={() => {
+                                                setNewClubData({ name: '', acronym: '' });
+                                                setShowJoinModal(true);
+                                            }}>
+                                                <i className="bi bi-shield-plus me-1"></i> Crear Club
+                                            </Button>
+                                        );
+                                    } else {
+                                        return (
+                                            <span className="badge bg-success bg-opacity-25 text-success p-2 fs-6">
+                                                <i className="bi bi-check-circle-fill me-1"></i> Inscrito con Club
+                                            </span>
+                                        );
+                                    }
+                                })()}
 
                                 <Link to={`/market/${activeLeague.id}`} className="btn btn-outline-primary">
                                     <i className="bi bi-shop me-1"></i> Mercado

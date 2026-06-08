@@ -33,6 +33,9 @@ public class LeagueClub {
     @JoinColumn(name = "league_id")
     private League league;
 
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
+
     // clubId ya está en el LeagueClubId, pero podemos acceder a él
 
     @Column(nullable = false)
