@@ -31,4 +31,6 @@ public interface LeagueRepository extends JpaRepository<League, Long> {
      * @return lista de ligas
      */
     List<League> findByActive(Boolean active);
+
+    long countByWinnerUserId(Long winnerUserId);
 }

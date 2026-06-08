@@ -56,7 +56,7 @@ public class Club {
      */
     @Column(name = "riot_points", nullable = false)
     @Builder.Default
-    private Integer riotPoints = 10000;
+    private Integer riotPoints = 2000;
 
     /**
      * ID del propietario del club (referencia lógica a {@code auth_db.users}).

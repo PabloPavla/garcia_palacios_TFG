@@ -91,7 +91,9 @@ public class TournamentService {
         // Generar calendario Round-Robin (Berger)
         int numTeams = clubs.size();
         for (int round = 0; round < numTeams - 1; round++) {
-            LocalDateTime roundTime = LocalDateTime.now().plusMinutes(round * 10);
+            int day = round / 5;
+            int minuteOffset = (round % 5) * 10;
+            LocalDateTime roundTime = LocalDateTime.now().plusDays(day).plusMinutes(minuteOffset);
             for (int i = 0; i < numTeams / 2; i++) {
                 int homeIdx = (round + i) % (numTeams - 1);
                 int awayIdx = (numTeams - 1 - i + round) % (numTeams - 1);
@@ -114,6 +116,9 @@ public class TournamentService {
         for (Match match : round1Matches) {
             simulateMatch(match);
         }
+
+        // Resolver la liga en caso de que termine inmediatamente (por ejemplo, con 2 equipos)
+        checkAndResolveLeague(leagueId);
     }
 
     private void createTournamentMatch(League league, Long homeClubId, Long awayClubId, LocalDateTime matchDate, String roundName) {
@@ -141,12 +146,20 @@ public class TournamentService {
     public void simulateScheduledMatches() {
         List<Match> pendingMatches = matchRepository.findByStatusAndMatchDateBefore(
                 MatchStatus.SCHEDULED, LocalDateTime.now());
+        java.util.Set<Long> checkLeagues = new java.util.HashSet<>();
+        
         for (Match match : pendingMatches) {
             try {
                 simulateMatch(match);
+                checkLeagues.add(match.getLeague().getId());
             } catch (Exception e) {
                 System.err.println("Error al simular partido programado " + match.getId() + ": " + e.getMessage());
             }
+        }
+
+        // Comprobar si las ligas simuladas han finalizado
+        for (Long leagueId : checkLeagues) {
+            checkAndResolveLeague(leagueId);
         }
     }
 
@@ -186,6 +199,63 @@ public class TournamentService {
 
         // Record result WITHOUT wagers (no RP deduction or rewards)
         matchService.recordResultForTournament(match.getId(), scoreRequest);
+
+        // Bonificación del 10% al club ganador
+        if (homeGoals > awayGoals) {
+            applyWinBonus(match.getHomeClubId());
+        } else if (awayGoals > homeGoals) {
+            applyWinBonus(match.getAwayClubId());
+        }
+    }
+
+    private void applyWinBonus(Long clubId) {
+        try {
+            java.util.Map<String, Object> club = clubClient.getClub(clubId);
+            if (club != null && club.containsKey("riotPoints")) {
+                Number rpVal = (Number) club.get("riotPoints");
+                int currentRp = rpVal != null ? rpVal.intValue() : 0;
+                int bonus = (int) Math.ceil(currentRp * 0.10);
+                if (bonus < 1) bonus = 1; // Garantizar al menos 1 RP de incremento
+                clubClient.updateRiotPoints(clubId, bonus);
+                System.out.println("Aplicado 10% de bonificación al club " + clubId + ": +" + bonus + " RP");
+            }
+        } catch (Exception e) {
+            System.err.println("Error al aplicar la bonificación de victoria al club " + clubId + ": " + e.getMessage());
+        }
+    }
+
+    private void checkAndResolveLeague(Long leagueId) {
+        try {
+            // Obtener todos los partidos de torneo de esta liga
+            List<Match> allMatches = matchRepository.findByLeagueId(leagueId, org.springframework.data.domain.Pageable.unpaged())
+                    .getContent()
+                    .stream()
+                    .filter(m -> m.getTournamentRound() != null)
+                    .toList();
+            
+            if (allMatches.isEmpty()) return;
+
+            // Verificar si todos están completados
+            boolean allCompleted = allMatches.stream().allMatch(m -> m.getStatus() == MatchStatus.COMPLETED);
+            if (allCompleted) {
+                // Obtener standings
+                List<LeagueClub> standings = leagueClubRepository.findStandingsByLeagueId(leagueId);
+                if (standings != null && !standings.isEmpty()) {
+                    LeagueClub winner = standings.get(0);
+                    League league = leagueRepository.findById(leagueId).orElse(null);
+                    if (league != null && Boolean.TRUE.equals(league.getActive())) {
+                        league.setActive(false);
+                        league.setEndDate(java.time.LocalDate.now());
+                        league.setWinnerClubId(winner.getId().getClubId());
+                        league.setWinnerUserId(winner.getOwnerId());
+                        leagueRepository.save(league);
+                        System.out.println("Liga " + leagueId + " finalizada. Ganador: Club " + winner.getId().getClubId() + ", Manager " + winner.getOwnerId());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al resolver la liga " + leagueId + ": " + e.getMessage());
+        }
     }
 
     @Transactional

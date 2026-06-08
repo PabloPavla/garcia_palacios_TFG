@@ -81,7 +81,7 @@ public class LeagueServiceTest {
         when(leagueClubRepository.existsByIdLeagueIdAndIdClubId(1L, 10L)).thenReturn(false);
 
         // Act
-        leagueService.enrollClub(1L, 10L, 1L);
+        leagueService.enrollClub(1L, 10L, 1L, "ROLE_ADMIN");
 
         // Assert
         verify(leagueClubRepository, times(1)).save(any(LeagueClub.class));
@@ -95,7 +95,7 @@ public class LeagueServiceTest {
 
         // Act & Assert
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            leagueService.enrollClub(1L, 10L, 1L);
+            leagueService.enrollClub(1L, 10L, 1L, "ROLE_ADMIN");
         });
         assertTrue(exception.getMessage().contains("máximo de clubes"));
         verify(leagueClubRepository, never()).save(any(LeagueClub.class));

@@ -22,7 +22,7 @@ const LeaguePage = () => {
     
     // Modal Crear Liga
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newLeagueData, setNewLeagueData] = useState({ name: '', season: '2024', initialRp: 10000, maxClubs: 4, visibility: 'PUBLIC', matchWagerRp: 500 });
+    const [newLeagueData, setNewLeagueData] = useState({ name: '', season: '2024', initialRp: 2000, maxClubs: 4, visibility: 'PUBLIC', matchWagerRp: 500 });
     
     // Modal Unirse a Liga
     const [showJoinModal, setShowJoinModal] = useState(false);

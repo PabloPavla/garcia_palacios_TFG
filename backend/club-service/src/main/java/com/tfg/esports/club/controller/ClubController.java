@@ -170,4 +170,13 @@ public class ClubController {
         clubService.addRp(id, amount);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Suma o resta Riot Points a un club. Llamado por League Service.
+     */
+    @PutMapping("/{id}/riot-points")
+    public ResponseEntity<Void> updateRiotPoints(@PathVariable Long id, @RequestParam Integer amount) {
+        clubService.updateRiotPoints(id, amount);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -221,6 +221,11 @@ public class LeagueService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public long getWonLeaguesCount(Long userId) {
+        return leagueRepository.countByWinnerUserId(userId);
+    }
+
     private League findLeagueOrThrow(Long id) {
         return leagueRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Liga no encontrada con ID: " + id));
