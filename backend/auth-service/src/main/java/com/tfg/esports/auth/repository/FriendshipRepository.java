@@ -30,4 +30,9 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
            "((f.sender.id = :userId1 AND f.receiver.id = :userId2) OR " +
            "(f.sender.id = :userId2 AND f.receiver.id = :userId1))")
     boolean existsAnyFriendship(Long userId1, Long userId2);
+
+    @Query("SELECT f FROM Friendship f WHERE " +
+           "((f.sender.id = :userId1 AND f.receiver.id = :userId2) OR " +
+           "(f.sender.id = :userId2 AND f.receiver.id = :userId1))")
+    Optional<Friendship> findFriendshipBetween(Long userId1, Long userId2);
 }

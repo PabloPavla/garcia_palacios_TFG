@@ -2,6 +2,7 @@ package com.tfg.esports.auth.service;
 
 import com.tfg.esports.auth.dto.FriendRequestResponse;
 import com.tfg.esports.auth.dto.FriendResponse;
+import com.tfg.esports.auth.dto.FriendStatusResponse;
 import com.tfg.esports.auth.entity.Friendship;
 import com.tfg.esports.auth.entity.FriendshipStatus;
 import com.tfg.esports.auth.entity.User;
@@ -142,5 +143,38 @@ public class FriendshipService {
                         .profilePictureUrl(u.getProfilePictureUrl())
                         .build())
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public FriendStatusResponse getFriendshipStatus(Long currentUserId, Long targetUserId) {
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        
+        Optional<Friendship> friendshipOpt = friendshipRepository.findFriendshipBetween(currentUserId, targetUserId);
+        
+        String status = "NONE";
+        Long friendshipId = null;
+        
+        if (friendshipOpt.isPresent()) {
+            Friendship f = friendshipOpt.get();
+            friendshipId = f.getId();
+            if (f.getStatus() == FriendshipStatus.ACCEPTED) {
+                status = "ACCEPTED";
+            } else if (f.getStatus() == FriendshipStatus.PENDING) {
+                if (f.getSender().getId().equals(currentUserId)) {
+                    status = "PENDING_SENT";
+                } else {
+                    status = "PENDING_RECEIVED";
+                }
+            }
+        }
+        
+        return FriendStatusResponse.builder()
+                .userId(targetUser.getId())
+                .username(targetUser.getUsername())
+                .profilePictureUrl(targetUser.getProfilePictureUrl())
+                .friendshipStatus(status)
+                .friendshipId(friendshipId)
+                .build();
     }
 }

@@ -38,6 +38,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserRepository userRepository;
+    private final GatewayHeaderFilter gatewayHeaderFilter;
 
     /**
      * Configura la cadena de filtros de seguridad HTTP.
@@ -73,6 +74,7 @@ public class SecurityConfig {
                         // El resto requiere autenticación
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(gatewayHeaderFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .build();
     }
