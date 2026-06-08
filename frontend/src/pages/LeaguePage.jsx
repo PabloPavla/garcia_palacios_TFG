@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import leagueService from '../services/leagueService';
 import clubService from '../services/clubService';
 import TournamentBracket from '../components/TournamentBracket';
+import ClubDetailsModal from '../components/ClubDetailsModal';
 
 const LeaguePage = () => {
     const { user } = useAuth();
@@ -19,6 +20,7 @@ const LeaguePage = () => {
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedClubId, setSelectedClubId] = useState(null);
     
     // Modal Crear Liga
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -301,7 +303,14 @@ const LeaguePage = () => {
                                              index === 2 ? <i className="bi bi-3-circle-fill text-warning me-1" style={{ color: '#cd7f32' }}></i> : 
                                              <span className="text-secondary">{index + 1}</span>}
                                         </td>
-                                        <td className="py-3 text-start fw-bold text-white">
+                                        <td 
+                                            className="py-3 text-start fw-bold text-white" 
+                                            style={{ cursor: 'pointer', transition: 'color 0.2s' }}
+                                            onClick={() => setSelectedClubId(team.clubId)}
+                                            onMouseEnter={(e) => e.target.style.color = 'var(--brand-gold)'}
+                                            onMouseLeave={(e) => e.target.style.color = 'white'}
+                                        >
+                                            <i className="bi bi-shield-shaded me-1" style={{ color: 'var(--brand-gold)' }}></i>
                                             {clubsCache[team.clubId] || 'Cargando...'}
                                         </td>
                                         <td className="py-3 fw-bold fs-5 text-primary">{team.points}</td>
@@ -340,9 +349,10 @@ const LeaguePage = () => {
                     </div>
                     ) : (
                         <TournamentBracket 
-                            leagueId={activeLeagueId} 
-                            activeClubId={standings.find(s => clubsDataCache[s.clubId]?.ownerId === user?.id)?.clubId} 
-                        />
+                                                            leagueId={activeLeagueId} 
+                                                            activeClubId={standings.find(s => clubsDataCache[s.clubId]?.ownerId === user?.id)?.clubId} 
+                                                            onClubClick={setSelectedClubId}
+                                                        />
                     )}
                 </>
             )}
@@ -405,6 +415,11 @@ const LeaguePage = () => {
                     </Form>
                 </Modal.Body>
             </Modal>
+
+            <ClubDetailsModal 
+                clubId={selectedClubId} 
+                onHide={() => setSelectedClubId(null)} 
+            />
         </Container>
     );
 };

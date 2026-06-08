@@ -34,6 +34,11 @@ const friendService = {
     getPendingRequests: async () => {
         const response = await api.get('/auth/friends/pending');
         return response.data;
+    },
+
+    getFriendshipStatus: async (targetUserId) => {
+        const response = await api.get(`/auth/friends/status/${targetUserId}`);
+        return response.data;
     }
 };
 

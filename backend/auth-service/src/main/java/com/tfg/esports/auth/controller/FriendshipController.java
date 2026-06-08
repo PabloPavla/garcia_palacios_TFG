@@ -2,6 +2,7 @@ package com.tfg.esports.auth.controller;
 
 import com.tfg.esports.auth.dto.FriendRequestResponse;
 import com.tfg.esports.auth.dto.FriendResponse;
+import com.tfg.esports.auth.dto.FriendStatusResponse;
 import com.tfg.esports.auth.service.FriendshipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -87,5 +88,12 @@ public class FriendshipController {
         
         boolean areFriends = friendshipService.areFriends(userId1, userId2);
         return ResponseEntity.ok(Map.of("areFriends", areFriends));
+    }
+
+    @GetMapping("/status/{targetUserId}")
+    public ResponseEntity<FriendStatusResponse> getFriendshipStatus(
+            @RequestHeader("X-Auth-User-Id") Long currentUserId,
+            @PathVariable Long targetUserId) {
+        return ResponseEntity.ok(friendshipService.getFriendshipStatus(currentUserId, targetUserId));
     }
 }

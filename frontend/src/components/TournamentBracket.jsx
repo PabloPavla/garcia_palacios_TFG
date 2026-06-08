@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Spinner, Alert, Badge, Nav } from 'react-bootst
 import leagueService from '../services/leagueService';
 import clubService from '../services/clubService';
 
-const TournamentBracket = ({ leagueId, activeClubId }) => {
+const TournamentBracket = ({ leagueId, activeClubId, onClubClick }) => {
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -227,7 +227,12 @@ const TournamentBracket = ({ leagueId, activeClubId }) => {
                                     <div className="flex-grow-1 d-flex flex-column justify-content-center gap-2 py-2">
                                         {/* Home Team */}
                                         <div className="d-flex justify-content-between align-items-center">
-                                            <span className={`fw-bold text-truncate ${homeWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`} style={{ maxWidth: '80%' }}>
+                                            <span 
+                                                className={`fw-bold text-truncate ${homeWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`} 
+                                                style={{ maxWidth: '80%', cursor: 'pointer' }}
+                                                onClick={() => onClubClick && onClubClick(match.homeClubId)}
+                                                title="Ver detalles del club"
+                                            >
                                                 {homeWinner && <i className="bi bi-caret-right-fill text-warning me-1"></i>}
                                                 {clubsCache[match.homeClubId] || `Club ${match.homeClubId}`}
                                             </span>
@@ -238,7 +243,12 @@ const TournamentBracket = ({ leagueId, activeClubId }) => {
 
                                         {/* Away Team */}
                                         <div className="d-flex justify-content-between align-items-center">
-                                            <span className={`fw-bold text-truncate ${awayWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`} style={{ maxWidth: '80%' }}>
+                                            <span 
+                                                className={`fw-bold text-truncate ${awayWinner ? 'text-warning' : isCompleted ? 'text-secondary' : 'text-white'}`} 
+                                                style={{ maxWidth: '80%', cursor: 'pointer' }}
+                                                onClick={() => onClubClick && onClubClick(match.awayClubId)}
+                                                title="Ver detalles del club"
+                                            >
                                                 {awayWinner && <i className="bi bi-caret-right-fill text-warning me-1"></i>}
                                                 {clubsCache[match.awayClubId] || `Club ${match.awayClubId}`}
                                             </span>
