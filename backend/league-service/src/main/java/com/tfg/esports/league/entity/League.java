@@ -50,7 +50,7 @@ public class League {
 
     @Column(name = "initial_rp", nullable = false)
     @Builder.Default
-    private Integer initialRp = 10000;
+    private Integer initialRp = 2000;
 
     @Column(name = "max_clubs", nullable = false)
     @Builder.Default
@@ -71,4 +71,10 @@ public class League {
 
     @Column(name = "creator_user_id")
     private Long creatorUserId;
+
+    @Column(name = "winner_club_id")
+    private Long winnerClubId;
+
+    @Column(name = "winner_user_id")
+    private Long winnerUserId;
 }

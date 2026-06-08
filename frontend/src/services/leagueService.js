@@ -59,6 +59,11 @@ const leagueService = {
     getMyLeagues: async () => {
         const response = await api.get('/leagues/my-leagues');
         return response.data;
+    },
+
+    getWonLeaguesCount: async () => {
+        const response = await api.get('/leagues/won-count');
+        return response.data;
     }
 };
 

@@ -10,6 +10,7 @@ const DashboardPage = () => {
     const [leaguesData, setLeaguesData] = useState([]);
     const [clubsCount, setClubsCount] = useState(0);
     const [totalRiotPoints, setTotalRiotPoints] = useState(0);
+    const [wonLeaguesCount, setWonLeaguesCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -86,6 +87,14 @@ const DashboardPage = () => {
                     }
                 }
 
+                try {
+                    const wonData = await leagueService.getWonLeaguesCount();
+                    setWonLeaguesCount(wonData.count || 0);
+                } catch (e) {
+                    console.error("Error al cargar el conteo de ligas ganadas:", e);
+                    setWonLeaguesCount(0);
+                }
+
                 setLeaguesData(details);
                 setClubsCount(myClubs.length);
                 setTotalRiotPoints(rpSum || myClubs.reduce((acc, c) => acc + (c.riotPoints || 0), 0));
@@ -147,7 +156,7 @@ const DashboardPage = () => {
 
             {/* Tarjetas de Resumen */}
             <Row className="g-3 mb-4">
-                <Col md={4}>
+                <Col md={6} lg={3}>
                     <div className="glass-card p-4 h-100 border-start border-primary border-4">
                         <div className="d-flex justify-content-between">
                             <h6 className="text-secondary fw-bold mb-0">MIS EQUIPOS</h6>
@@ -157,7 +166,7 @@ const DashboardPage = () => {
                         <small className="text-secondary">Club{clubsCount !== 1 ? 'es' : ''} activo{clubsCount !== 1 ? 's' : ''}</small>
                     </div>
                 </Col>
-                <Col md={4}>
+                <Col md={6} lg={3}>
                     <div className="glass-card p-4 h-100 border-start border-warning border-4">
                         <div className="d-flex justify-content-between">
                             <h6 className="text-secondary fw-bold mb-0">MIS LIGAS</h6>
@@ -167,7 +176,17 @@ const DashboardPage = () => {
                         <small className="text-secondary">Ligas inscritas</small>
                     </div>
                 </Col>
-                <Col md={4}>
+                <Col md={6} lg={3}>
+                    <div className="glass-card p-4 h-100 border-start border-gold border-4" style={{ borderLeftColor: 'var(--brand-gold)' }}>
+                        <div className="d-flex justify-content-between">
+                            <h6 className="text-secondary fw-bold mb-0" style={{ color: 'var(--brand-gold)' }}>LIGAS GANADAS</h6>
+                            <i className="bi bi-award-fill fs-4" style={{ color: 'var(--brand-gold)' }}></i>
+                        </div>
+                        <h2 className="mt-3 fw-bold text-white mb-0">{wonLeaguesCount}</h2>
+                        <small className="text-secondary">Ligas ganadas</small>
+                    </div>
+                </Col>
+                <Col md={6} lg={3}>
                     <div className="glass-card p-4 h-100 border-start border-info border-4">
                         <div className="d-flex justify-content-between">
                             <h6 className="text-secondary fw-bold mb-0">PRESUPUESTO TOTAL</h6>

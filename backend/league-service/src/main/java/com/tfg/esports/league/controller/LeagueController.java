@@ -57,6 +57,12 @@ public class LeagueController {
         return ResponseEntity.ok(Map.of("message", "Inscripción en la liga completada con éxito"));
     }
 
+    @GetMapping("/won-count")
+    public ResponseEntity<Map<String, Object>> getWonLeaguesCount(
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        return ResponseEntity.ok(Map.of("count", leagueService.getWonLeaguesCount(userId)));
+    }
+
     @GetMapping("/my-leagues")
     public ResponseEntity<List<League>> getMyLeagues(
             @RequestHeader("X-Auth-User-Id") Long userId) {
