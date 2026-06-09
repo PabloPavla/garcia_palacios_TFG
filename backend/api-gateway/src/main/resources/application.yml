@@ -18,6 +18,7 @@ spring:
               - "http://localhost:5173"     # Vite dev server
               - "http://localhost:3000"     # Alternativa CRA
               - "https://*.vercel.app"      # Producción Vercel
+              - "https://*.azurecontainerapps.io" # Producción Azure Container Apps
             allowedMethods:
               - GET
               - POST
