@@ -227,4 +227,64 @@ public class AuthService {
     public java.util.Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<java.util.Map<String, Object>> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(u -> {
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", u.getId());
+                    map.put("username", u.getUsername());
+                    map.put("email", u.getEmail());
+                    map.put("role", u.getRole().name());
+                    map.put("active", u.isActive());
+                    map.put("createdAt", u.getCreatedAt() != null ? u.getCreatedAt().toString() : "");
+                    return map;
+                })
+                .toList();
+    }
+
+    @Transactional
+    public void deleteUser(Long id, String currentUsername) {
+        User userToDelete = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
+
+        if (userToDelete.getUsername().equals(currentUsername)) {
+            throw new IllegalArgumentException("No puedes eliminarte a ti mismo");
+        }
+
+        // Eliminar todos sus refresh tokens antes por seguridad
+        refreshTokenRepository.deleteAllByUser(userToDelete);
+
+        userRepository.delete(userToDelete);
+    }
+
+    @Transactional
+    public User createUserByAdmin(com.tfg.esports.auth.dto.AdminUserCreateRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new IllegalArgumentException("El nombre de usuario ya está en uso");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("El correo electrónico ya está registrado");
+        }
+
+        Role roleVal = Role.ROLE_OWNER;
+        if (request.getRole() != null) {
+            try {
+                roleVal = Role.valueOf(request.getRole().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Rol no válido. Debe ser ROLE_ADMIN o ROLE_OWNER");
+            }
+        }
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(roleVal)
+                .active(true)
+                .build();
+
+        return userRepository.save(user);
+    }
 }

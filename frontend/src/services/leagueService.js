@@ -89,6 +89,11 @@ const leagueService = {
     rejectInvitation: async (invitationId) => {
         const response = await api.post(`/leagues/invitations/${invitationId}/reject`);
         return response.data;
+    },
+
+    deleteLeague: async (leagueId) => {
+        const response = await api.delete(`/leagues/${leagueId}`);
+        return response.data;
     }
 };
 

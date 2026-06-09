@@ -366,6 +366,12 @@ public class LeagueService {
         leagueInvitationRepository.save(invitation);
     }
 
+    @Transactional
+    public void deleteLeague(Long id) {
+        League league = findLeagueOrThrow(id);
+        leagueRepository.delete(league);
+    }
+
     private League findLeagueOrThrow(Long id) {
         return leagueRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Liga no encontrada con ID: " + id));
