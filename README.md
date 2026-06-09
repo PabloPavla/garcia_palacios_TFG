@@ -94,7 +94,7 @@ El proyecto se encuentra totalmente contenedorizado, permitiendo un fácil despl
    npm install
    npm run dev
    ```
-   La aplicación estará disponible en `http://localhost:5173`.
+   La aplicación estará disponible en `https://frontend.happyrock-6898a204.spaincentral.azurecontainerapps.io/login`.
 
 ---
 
