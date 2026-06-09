@@ -6,6 +6,7 @@ import leagueService from '../services/leagueService';
 import clubService from '../services/clubService';
 import TournamentBracket from '../components/TournamentBracket';
 import ClubDetailsModal from '../components/ClubDetailsModal';
+import friendService from '../services/friendService';
 
 const LeaguePage = () => {
     const { user } = useAuth();
@@ -29,6 +30,54 @@ const LeaguePage = () => {
     // Modal Unirse a Liga
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [newClubData, setNewClubData] = useState({ name: '', acronym: '' });
+
+    // Invitaciones
+    const [inviteUsername, setInviteUsername] = useState('');
+    const [friendsList, setFriendsList] = useState([]);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(window.location.search);
+        const inviteToken = queryParams.get('inviteToken');
+        if (inviteToken) {
+            const joinByInviteToken = async () => {
+                try {
+                    await leagueService.joinByToken(inviteToken);
+                    alert("¡Te has unido a la liga con éxito a través del enlace de invitación!");
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    loadLeagues();
+                } catch (err) {
+                    alert("Error al unirte mediante el enlace: " + (err.response?.data?.error || err.response?.data?.message || err.message));
+                }
+            };
+            joinByInviteToken();
+        }
+    }, []);
+
+    const loadFriends = async () => {
+        try {
+            const data = await friendService.getFriends();
+            setFriendsList(data || []);
+        } catch (e) {
+            console.error("Error al cargar la lista de amigos para invitar:", e);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            loadFriends();
+        }
+    }, [user]);
+
+    const handleSendInvitation = async (usernameToInvite) => {
+        if (!usernameToInvite || !usernameToInvite.trim()) return;
+        try {
+            await leagueService.inviteUser(activeLeagueId, usernameToInvite);
+            alert(`¡Invitación enviada con éxito a ${usernameToInvite}!`);
+            setInviteUsername('');
+        } catch (err) {
+            alert("Error al enviar la invitación: " + (err.response?.data?.error || err.response?.data?.message || err.message));
+        }
+    };
 
     const loadLeagues = async () => {
         try {
@@ -355,6 +404,96 @@ const LeaguePage = () => {
                                                         />
                     )}
                 </>
+            )}
+
+            {activeLeague && isCreator && (activeLeague.visibility === 'PRIVATE' || activeLeague.visibility === 'FRIENDS_ONLY') && (
+                <div className="glass-card p-4 mt-5 animate-fade-in border-start border-warning border-4">
+                    <h4 className="fw-bold text-white mb-4">
+                        <i className="bi bi-person-plus-fill text-warning me-2"></i>ADMINISTRAR INVITACIONES (LIGA PRIVADA)
+                    </h4>
+                    <Row className="g-4">
+                        {/* 1. Por Enlace */}
+                        <Col md={12} lg={6}>
+                            <div className="bg-dark bg-opacity-50 p-3 rounded h-100">
+                                <h5 className="text-white mb-3">
+                                    <i className="bi bi-link-45deg me-2 text-primary"></i>Invitar por Enlace
+                                </h5>
+                                <p className="text-secondary small">Comparte este enlace para permitir que cualquiera se una directamente a la liga:</p>
+                                <div className="d-flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        readOnly 
+                                        className="form-control bg-black text-light border-secondary" 
+                                        value={`${window.location.origin}/leagues?inviteToken=${activeLeague.inviteToken || ''}`} 
+                                    />
+                                    <Button 
+                                        variant="primary" 
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}/leagues?inviteToken=${activeLeague.inviteToken || ''}`);
+                                            alert("¡Enlace de invitación copiado al portapapeles!");
+                                        }}
+                                    >
+                                        Copiar
+                                    </Button>
+                                </div>
+                            </div>
+                        </Col>
+
+                        {/* 2. Escribiendo Nombre de Usuario */}
+                        <Col md={12} lg={6}>
+                            <div className="bg-dark bg-opacity-50 p-3 rounded h-100">
+                                <h5 className="text-white mb-3">
+                                    <i className="bi bi-input-cursor-text me-2 text-primary"></i>Buscar / Escribir Nombre de Usuario
+                                </h5>
+                                <p className="text-secondary small">Introduce el nombre de usuario exacto del mánager al que deseas invitar:</p>
+                                <Form onSubmit={(e) => { e.preventDefault(); handleSendInvitation(inviteUsername); }} className="d-flex gap-2">
+                                    <Form.Control 
+                                        type="text" 
+                                        placeholder="Nombre de usuario..." 
+                                        className="bg-black text-white border-secondary" 
+                                        value={inviteUsername} 
+                                        onChange={(e) => setInviteUsername(e.target.value)} 
+                                    />
+                                    <Button variant="success" type="submit">
+                                        Invitar
+                                    </Button>
+                                </Form>
+                            </div>
+                        </Col>
+
+                        {/* 3. Selección de Amigos */}
+                        <Col md={12}>
+                            <div className="bg-dark bg-opacity-50 p-3 rounded">
+                                <h5 className="text-white mb-3">
+                                    <i className="bi bi-people-fill me-2 text-primary"></i>Invitar Amigos
+                                </h5>
+                                {friendsList.length === 0 ? (
+                                    <p className="text-secondary small mb-0">Aún no tienes amigos agregados en tu perfil.</p>
+                                ) : (
+                                    <div className="d-flex flex-wrap gap-2">
+                                        {friendsList.map(friend => {
+                                            // Check if already in standings
+                                            const isFriendEnrolled = standings.some(s => clubsDataCache[s.clubId]?.ownerId === friend.id);
+                                            return (
+                                                <div key={friend.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 px-3 rounded border border-secondary">
+                                                    <span className="text-white fw-bold">{friend.username}</span>
+                                                    <Button 
+                                                        variant={isFriendEnrolled ? "secondary" : "outline-warning"} 
+                                                        size="sm" 
+                                                        disabled={isFriendEnrolled}
+                                                        onClick={() => handleSendInvitation(friend.username)}
+                                                    >
+                                                        {isFriendEnrolled ? "Inscrito" : "Invitar"}
+                                                    </Button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </Col>
+                    </Row>
+                </div>
             )}
 
             {/* Modal Crear Liga */}

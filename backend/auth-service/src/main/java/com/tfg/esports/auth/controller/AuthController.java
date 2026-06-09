@@ -117,4 +117,15 @@ public class AuthController {
         AuthResponse response = authService.updateProfile(principal.getName(), request);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/users/by-username/{username}")
+    public ResponseEntity<java.util.Map<String, Object>> getUserByUsername(@PathVariable String username) {
+        return authService.findByUsername(username)
+                .map(u -> ResponseEntity.ok(java.util.Map.of(
+                        "id", (Object) u.getId(),
+                        "username", (Object) u.getUsername(),
+                        "profilePictureUrl", u.getProfilePictureUrl() != null ? u.getProfilePictureUrl() : ""
+                )))
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

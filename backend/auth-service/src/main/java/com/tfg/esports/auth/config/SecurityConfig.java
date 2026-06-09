@@ -71,6 +71,11 @@ public class SecurityConfig {
                                 "/auth/refresh",
                                 "/actuator/**"
                         ).permitAll()
+                        // Rutas internas usadas por otros microservicios (sin JWT)
+                        .requestMatchers(
+                                "/auth/users/by-username/**",
+                                "/auth/friends/check"
+                        ).permitAll()
                         // El resto requiere autenticación
                         .anyRequest().authenticated()
                 )

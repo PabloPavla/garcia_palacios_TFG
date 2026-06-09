@@ -33,4 +33,6 @@ public interface LeagueRepository extends JpaRepository<League, Long> {
     List<League> findByActive(Boolean active);
 
     long countByWinnerUserId(Long winnerUserId);
+
+    Optional<League> findByInviteToken(String inviteToken);
 }

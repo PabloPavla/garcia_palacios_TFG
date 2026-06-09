@@ -11,14 +11,23 @@ const DashboardPage = () => {
     const [clubsCount, setClubsCount] = useState(0);
     const [totalRiotPoints, setTotalRiotPoints] = useState(0);
     const [wonLeaguesCount, setWonLeaguesCount] = useState(0);
+    const [pendingInvitations, setPendingInvitations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // 0. Obtener invitaciones pendientes
+            let invitations = [];
             try {
-                setLoading(true);
-                setError(null);
+                invitations = await leagueService.getPendingInvitations();
+            } catch (e) {
+                console.error("Error al cargar invitaciones de ligas:", e);
+            }
+            setPendingInvitations(invitations);
 
                 // 1. Obtener los clubes del usuario
                 const myClubs = await clubService.getMyClubs();
@@ -105,8 +114,28 @@ const DashboardPage = () => {
             }
         };
 
+    useEffect(() => {
         fetchDashboardData();
     }, [user]);
+
+    const handleAcceptInvitation = async (invitationId) => {
+        try {
+            await leagueService.acceptInvitation(invitationId);
+            alert("¡Invitación aceptada con éxito! Ahora ya puedes participar en la liga.");
+            fetchDashboardData();
+        } catch (err) {
+            alert("Error al aceptar la invitación: " + (err.response?.data?.message || err.message));
+        }
+    };
+
+    const handleRejectInvitation = async (invitationId) => {
+        try {
+            await leagueService.rejectInvitation(invitationId);
+            setPendingInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+        } catch (err) {
+            alert("Error al rechazar la invitación: " + (err.response?.data?.message || err.message));
+        }
+    };
 
     if (loading) {
         return (
@@ -123,6 +152,35 @@ const DashboardPage = () => {
     if (leaguesData.length === 0) {
         return (
             <Container className="mt-5 pt-4 animate-fade-in">
+                {pendingInvitations.length > 0 && (
+                    <Row className="justify-content-center mb-4">
+                        <Col md={8} lg={6}>
+                            <div className="glass-card p-4 border-start border-warning border-4">
+                                <h5 className="fw-bold text-white mb-3">
+                                    <i className="bi bi-envelope-open-fill text-warning me-2"></i>Invitaciones a Ligas
+                                </h5>
+                                <div className="d-flex flex-column gap-2">
+                                    {pendingInvitations.map(inv => (
+                                        <div key={inv.id} className="d-flex justify-content-between align-items-center bg-black bg-opacity-25 p-3 rounded flex-wrap gap-2">
+                                            <div>
+                                                <strong className="text-white">{inv.leagueName}</strong>
+                                                <span className="text-secondary d-block small">Temporada {inv.season}</span>
+                                            </div>
+                                            <div className="d-flex gap-2">
+                                                <Button variant="success" size="sm" onClick={() => handleAcceptInvitation(inv.id)}>
+                                                    <i className="bi bi-check-lg"></i>
+                                                </Button>
+                                                <Button variant="outline-danger" size="sm" onClick={() => handleRejectInvitation(inv.id)}>
+                                                    <i className="bi bi-x"></i>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Col>
+                    </Row>
+                )}
                 <Row className="justify-content-center">
                     <Col md={8} lg={6}>
                         <div className="glass-card p-5 text-center">
@@ -153,6 +211,32 @@ const DashboardPage = () => {
             </div>
 
             {error && <Alert variant="danger">{error}</Alert>}
+
+            {pendingInvitations.length > 0 && (
+                <div className="glass-card p-4 mb-4 border-start border-warning border-4 animate-fade-in">
+                    <h5 className="fw-bold text-white mb-3">
+                        <i className="bi bi-envelope-open-fill text-warning me-2"></i>Invitaciones de Liga Pendientes
+                    </h5>
+                    <div className="d-flex flex-column gap-2">
+                        {pendingInvitations.map(inv => (
+                            <div key={inv.id} className="d-flex justify-content-between align-items-center bg-black bg-opacity-25 p-3 rounded flex-wrap gap-2">
+                                <div>
+                                    <strong className="text-white fs-5">{inv.leagueName}</strong>
+                                    <span className="text-secondary ms-2">Temporada {inv.season}</span>
+                                </div>
+                                <div className="d-flex gap-2">
+                                    <Button variant="success" size="sm" onClick={() => handleAcceptInvitation(inv.id)}>
+                                        <i className="bi bi-check-lg me-1"></i>Aceptar
+                                    </Button>
+                                    <Button variant="outline-danger" size="sm" onClick={() => handleRejectInvitation(inv.id)}>
+                                        <i className="bi bi-x-lg me-1"></i>Rechazar
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Tarjetas de Resumen */}
             <Row className="g-3 mb-4">
