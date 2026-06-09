@@ -129,4 +129,16 @@ public class LeagueController {
         leagueService.rejectInvitation(invitationId, userId);
         return ResponseEntity.ok(Map.of("message", "Invitación rechazada"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteLeague(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Role", required = false) String role) {
+        if (!"ROLE_ADMIN".equals(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "No tienes permisos de administrador para realizar esta acción"));
+        }
+        leagueService.deleteLeague(id);
+        return ResponseEntity.ok(Map.of("message", "Liga eliminada correctamente"));
+    }
 }

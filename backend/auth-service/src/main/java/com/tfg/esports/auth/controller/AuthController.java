@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.security.Principal;
 import java.util.Map;
 
@@ -127,5 +128,32 @@ public class AuthController {
                         "profilePictureUrl", u.getProfilePictureUrl() != null ? u.getProfilePictureUrl() : ""
                 )))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getAllUsers() {
+        return ResponseEntity.ok(authService.getAllUsers());
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<java.util.Map<String, String>> deleteUser(@PathVariable Long id, Principal principal) {
+        authService.deleteUser(id, principal.getName());
+        return ResponseEntity.ok(java.util.Map.of("message", "Usuario eliminado correctamente"));
+    }
+
+    @PostMapping("/users")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<java.util.Map<String, Object>> createUserByAdmin(
+            @Valid @RequestBody com.tfg.esports.auth.dto.AdminUserCreateRequest request) {
+        com.tfg.esports.auth.entity.User user = authService.createUserByAdmin(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(java.util.Map.of(
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "email", user.getEmail(),
+                "role", user.getRole().name(),
+                "active", user.isActive()
+        ));
     }
 }

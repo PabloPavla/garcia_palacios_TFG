@@ -68,6 +68,21 @@ const authService = {
   clearAuthHeader: () => {
     delete api.defaults.headers.common['Authorization']
   },
+
+  getAllUsers: async () => {
+    const response = await api.get('/auth/users')
+    return response.data
+  },
+
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/auth/users/${userId}`)
+    return response.data
+  },
+
+  createUserByAdmin: async (userData) => {
+    const response = await api.post('/auth/users', userData)
+    return response.data
+  },
 }
 
 export default authService
