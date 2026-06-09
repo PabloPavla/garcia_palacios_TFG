@@ -64,6 +64,31 @@ const leagueService = {
     getWonLeaguesCount: async () => {
         const response = await api.get('/leagues/won-count');
         return response.data;
+    },
+
+    inviteUser: async (leagueId, username) => {
+        const response = await api.post(`/leagues/${leagueId}/invite?username=${username}`);
+        return response.data;
+    },
+
+    joinByToken: async (token) => {
+        const response = await api.post(`/leagues/join-by-token?token=${token}`);
+        return response.data;
+    },
+
+    getPendingInvitations: async () => {
+        const response = await api.get('/leagues/invitations/pending');
+        return response.data;
+    },
+
+    acceptInvitation: async (invitationId) => {
+        const response = await api.post(`/leagues/invitations/${invitationId}/accept`);
+        return response.data;
+    },
+
+    rejectInvitation: async (invitationId) => {
+        const response = await api.post(`/leagues/invitations/${invitationId}/reject`);
+        return response.data;
     }
 };
 

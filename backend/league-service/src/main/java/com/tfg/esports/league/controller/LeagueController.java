@@ -85,4 +85,48 @@ public class LeagueController {
     public ResponseEntity<List<League>> getLeaguesByClub(@RequestParam Long clubId) {
         return ResponseEntity.ok(leagueService.getLeaguesByClubId(clubId));
     }
+
+    @PostMapping("/{id}/invite")
+    public ResponseEntity<Map<String, String>> inviteUser(
+            @PathVariable Long id,
+            @RequestParam String username,
+            @RequestHeader("X-Auth-User-Id") Long currentUserId) {
+        
+        leagueService.inviteUser(id, username, currentUserId);
+        return ResponseEntity.ok(Map.of("message", "Invitación enviada correctamente"));
+    }
+
+    @PostMapping("/join-by-token")
+    public ResponseEntity<Map<String, String>> joinByToken(
+            @RequestParam String token,
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        
+        leagueService.joinByToken(token, userId);
+        return ResponseEntity.ok(Map.of("message", "Te has unido a la liga con éxito"));
+    }
+
+    @GetMapping("/invitations/pending")
+    public ResponseEntity<List<Map<String, Object>>> getPendingInvitations(
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        
+        return ResponseEntity.ok(leagueService.getPendingInvitations(userId));
+    }
+
+    @PostMapping("/invitations/{invitationId}/accept")
+    public ResponseEntity<Map<String, String>> acceptInvitation(
+            @PathVariable Long invitationId,
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        
+        leagueService.acceptInvitation(invitationId, userId);
+        return ResponseEntity.ok(Map.of("message", "Invitación aceptada"));
+    }
+
+    @PostMapping("/invitations/{invitationId}/reject")
+    public ResponseEntity<Map<String, String>> rejectInvitation(
+            @PathVariable Long invitationId,
+            @RequestHeader("X-Auth-User-Id") Long userId) {
+        
+        leagueService.rejectInvitation(invitationId, userId);
+        return ResponseEntity.ok(Map.of("message", "Invitación rechazada"));
+    }
 }

@@ -77,4 +77,7 @@ public class League {
 
     @Column(name = "winner_user_id")
     private Long winnerUserId;
+
+    @Column(name = "invite_token", unique = true, length = 36)
+    private String inviteToken;
 }
