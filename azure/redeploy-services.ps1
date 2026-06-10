@@ -14,6 +14,7 @@ $DB_PASS = "Tfg_Password_2026!"
 $JWT_SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
 
 $ACR_LOGIN_SERVER = az acr show --name $ACR_NAME --query loginServer --output tsv
+$ACR_PASSWORD = az acr credential show --name $ACR_NAME --query "passwords[0].value" -o tsv
 $EUREKA_FQDN = az containerapp show --name eureka-server --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv
 $EUREKA_URL = "https://$($EUREKA_FQDN)/eureka/"
 
@@ -29,11 +30,11 @@ az acr login --name $ACR_NAME
 Write-Host "`n[3/3] Rebuild y redeploy de los servicios afectados..." -ForegroundColor Yellow
 $services = @("club-service", "league-service", "transfer-service")
 foreach ($svc in $services) {
-    Write-Host "`n  -> Construyendo imagen $svc..." -ForegroundColor Cyan
-    docker build -t "$ACR_LOGIN_SERVER/$($svc):latest" -f "./backend/$svc/Dockerfile" ./backend
+    $TIMESTAMP = Get-Date -Format "yyyyMMddHHmmss"
+    Write-Host "`n  -> Construyendo y subiendo imagen $svc con Jib..." -ForegroundColor Cyan
     
-    Write-Host "  -> Subiendo $svc a ACR..." -ForegroundColor Cyan
-    docker push "$ACR_LOGIN_SERVER/$($svc):latest"
+    # Construir y empujar la imagen nativamente con Maven (no requiere Docker)
+    mvn compile com.google.cloud.tools:jib-maven-plugin:3.4.0:build "-Djib.from.image=eclipse-temurin:21-jre-alpine" "-Djib.to.image=$ACR_LOGIN_SERVER/$($svc):$TIMESTAMP" "-Djib.to.auth.username=$ACR_NAME" "-Djib.to.auth.password=$ACR_PASSWORD" -f "./backend/$svc/pom.xml"
 
     $DB_URL = "jdbc:mysql://$DB_SERVER_NAME.mysql.database.azure.com:3306/$($svc.Replace('-service',''))_db?createDatabaseIfNotExist=true"
 
@@ -41,8 +42,8 @@ foreach ($svc in $services) {
     az containerapp update `
         --name $svc `
         --resource-group $RESOURCE_GROUP `
-        --image "$ACR_LOGIN_SERVER/$($svc):latest" `
-        --set-env-vars "SPRING_DATASOURCE_URL=$DB_URL" "SPRING_DATASOURCE_USERNAME=$DB_ADMIN" "SPRING_DATASOURCE_PASSWORD=$DB_PASS" "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_URL" "JWT_SECRET=$JWT_SECRET" "SERVER_PORT=8080"
+        --image "$ACR_LOGIN_SERVER/$($svc):$TIMESTAMP" `
+        --set-env-vars "SPRING_DATASOURCE_URL=$DB_URL" "SPRING_DATASOURCE_USERNAME=$DB_ADMIN" "SPRING_DATASOURCE_PASSWORD=$DB_PASS" "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_URL" "JWT_SECRET=$JWT_SECRET" "SERVER_PORT=8080" "CLUB_SERVICE_URL=http://club-service" "AUTH_SERVICE_URL=http://auth-service" "LEAGUE_SERVICE_URL=http://league-service" "TRANSFER_SERVICE_URL=http://transfer-service"
 
     Write-Host "  -> $svc actualizado OK" -ForegroundColor Green
 }

@@ -182,12 +182,17 @@ const LeaguePage = () => {
     const handleJoinLeague = async (e) => {
         e.preventDefault();
         try {
-            // 1. Create Club
-            const newClub = await clubService.createClub({
+            console.log("Creating club with activeLeague:", activeLeague);
+            const payload = {
                 name: newClubData.name,
                 acronym: newClubData.acronym,
-                division: 'BRONZE'
-            });
+                division: 'BRONZE',
+                initialRp: activeLeague.initialRp
+            };
+            console.log("Club payload to send:", payload);
+            
+            // 1. Create Club
+            const newClub = await clubService.createClub(payload);
             
             // 2. Enroll in League
             try {

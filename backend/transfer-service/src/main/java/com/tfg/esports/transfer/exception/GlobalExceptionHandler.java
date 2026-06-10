@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import feign.FeignException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * Manejador global de excepciones para el Transfer Service.
@@ -46,6 +49,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
+
+    /**
+     * Maneja errores devueltos por otros microservicios a través de Feign.
+     */
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<Map<String, Object>> handleFeignException(FeignException ex) {
+        String errorMessage = "Error en el microservicio destino";
+        try {
+            if (ex.contentUTF8() != null && !ex.contentUTF8().isEmpty()) {
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, Object> body = mapper.readValue(ex.contentUTF8(), new TypeReference<Map<String, Object>>() {});
+                if (body.containsKey("message")) {
+                    errorMessage = body.get("message").toString();
+                }
+            }
+        } catch (Exception e) {
+            // Fallback
+        }
+        return buildError(HttpStatus.valueOf(ex.status() > 0 ? ex.status() : 500), errorMessage, null);
     }
 
     /**

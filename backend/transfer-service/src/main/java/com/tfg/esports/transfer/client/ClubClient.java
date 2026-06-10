@@ -3,7 +3,7 @@ package com.tfg.esports.transfer.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "CLUB-SERVICE")
+@FeignClient(name = "club-service", url = "${CLUB_SERVICE_URL:}")
 public interface ClubClient {
 
     @PostMapping("/players/{id}/sign")

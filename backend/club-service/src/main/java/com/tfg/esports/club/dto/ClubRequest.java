@@ -29,4 +29,7 @@ public class ClubRequest {
 
     /** División inicial del club (por defecto BRONZE) */
     private Division division;
+
+    /** RP iniciales que se asignarán al club (opcional) */
+    private Integer initialRp;
 }
