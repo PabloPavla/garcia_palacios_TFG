@@ -31,6 +31,7 @@ public class LeagueService {
     private final com.tfg.esports.league.repository.MatchRepository matchRepository;
 
     private final com.tfg.esports.league.client.AuthServiceClient authServiceClient;
+    private final com.tfg.esports.league.client.ClubClient clubClient;
     private final LeagueInvitationRepository leagueInvitationRepository;
 
     /**
@@ -151,6 +152,11 @@ public class LeagueService {
                 .build();
 
         leagueClubRepository.save(lc);
+
+        // Aplicar el initialRp de la liga al club recién inscrito
+        if (league.getInitialRp() != null && league.getInitialRp() > 0) {
+            clubClient.setRiotPoints(clubId, league.getInitialRp());
+        }
     }
 
     /**

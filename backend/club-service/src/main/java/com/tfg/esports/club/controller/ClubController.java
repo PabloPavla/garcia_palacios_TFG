@@ -179,4 +179,14 @@ public class ClubController {
         clubService.updateRiotPoints(id, amount);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Establece los Riot Points de un club a un valor absoluto.
+     * Llamado por League Service al inscribir un club para aplicar el initialRp de la liga.
+     */
+    @PutMapping("/{id}/rp/set")
+    public ResponseEntity<Void> setRiotPoints(@PathVariable Long id, @RequestParam Integer amount) {
+        clubService.setRiotPoints(id, amount);
+        return ResponseEntity.ok().build();
+    }
 }

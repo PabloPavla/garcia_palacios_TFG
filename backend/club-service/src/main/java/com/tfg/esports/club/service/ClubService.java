@@ -88,6 +88,7 @@ public class ClubService {
                 .logoUrl(request.getLogoUrl())
                 .ownerId(ownerId)
                 .division(request.getDivision() != null ? request.getDivision() : Division.BRONZE)
+                .riotPoints(request.getInitialRp() != null ? request.getInitialRp() : 2000)
                 .build();
 
         return ClubResponse.fromEntity(clubRepository.save(club));
@@ -151,6 +152,20 @@ public class ClubService {
         }
         club.setRiotPoints(newBalance);
         return ClubResponse.fromEntity(clubRepository.save(club));
+    }
+
+    /**
+     * Establece los Riot Points del club a un valor absoluto.
+     * Utilizado por League Service al inscribir un club para aplicar el initialRp de la liga.
+     *
+     * @param id     ID del club
+     * @param amount valor absoluto de RP a asignar
+     */
+    @Transactional
+    public void setRiotPoints(Long id, Integer amount) {
+        Club club = findClubOrThrow(id);
+        club.setRiotPoints(amount);
+        clubRepository.save(club);
     }
 
     @Transactional

@@ -5,11 +5,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "club-service")
+@FeignClient(name = "club-service", url = "${CLUB_SERVICE_URL:}")
 public interface ClubClient {
 
     @PutMapping("/clubs/{id}/riot-points")
     void updateRiotPoints(@PathVariable("id") Long id, @RequestParam("amount") Integer amount);
+
+    /** Establece los RP del club a un valor absoluto. */
+    @PutMapping("/clubs/{id}/rp/set")
+    void setRiotPoints(@PathVariable("id") Long id, @RequestParam("amount") Integer amount);
 
     @org.springframework.web.bind.annotation.GetMapping("/clubs/{id}/rating")
     Integer getClubRating(@PathVariable("id") Long id);
