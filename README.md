@@ -1,140 +1,133 @@
-# 🏆 Clash Manager: El Manager Definitivo de LoL Esports
-**Proyecto de Fin de Ciclo (DAW) - Desarrollo de Aplicaciones Web**  
-**Autor:** Pablo García Palacios
+# 🏆 Clash Manager - La Revolución en Gestión de eSports
 
-![League of Legends](https://img.shields.io/badge/League_of_Legends-151A22?style=for-the-badge&logo=league-of-legends&logoColor=C89B3C)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Azure](https://img.shields.io/badge/Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
+**Desarrollo de Aplicaciones Web (DAW)**  
+**Autor:** Pablo Garcia Palacios
 
 ---
 
 ## 📑 Índice
+
 1. [Introducción](#-introducción)
 2. [Funcionalidades y Tecnologías](#-funcionalidades-y-tecnologías)
 3. [Guía de Instalación](#-guía-de-instalación)
 4. [Guía de Uso](#-guía-de-uso)
 5. [Enlaces de Interés](#-enlaces-de-interés)
 6. [Conclusión](#-conclusión)
-7. [Contribuciones y Referencias](#-contribuciones-y-referencias)
-8. [Licencias](#-licencias)
-9. [Contacto](#-contacto)
+7. [Contribuciones y Licencias](#-contribuciones-y-licencias)
+8. [Contacto](#-contacto)
 
 ---
 
 ## 🚀 Introducción
 
-**Descripción del Proyecto**
-Clash Manager es una aplicación web integral diseñada para la gestión de clubes de esports, fuertemente centrada en el ecosistema de *League of Legends*. Permite a los usuarios crear clubes, competir en ligas privadas, fichar jugadores en el mercado, realizar ofertas a otros clubes y gestionar presupuestos mediante la moneda virtual *Riot Points*. 
+**Clash Manager** es un proyecto nacido de la pasión por los deportes electrónicos (eSports), diseñado para simular y gestionar un ecosistema competitivo completo. Inspirado en mecánicas de los juegos *manager* deportivos tradicionales, este proyecto lleva la gestión estratégica al mundo de League of Legends.
 
-**Justificación**
-El sector de los esports y el gaming competitivo carece de herramientas ligeras, accesibles y orientadas a grupos de amigos o comunidades pequeñas para simular la gestión de clubes y organizar competiciones propias de manera estructurada y automatizada. Clash Manager llena ese vacío.
+### Justificación y Objetivos
+El crecimiento de los eSports requiere de herramientas y plataformas cada vez más complejas. El objetivo principal de este proyecto es aplicar los conocimientos adquiridos durante el ciclo de DAW para construir una arquitectura de microservicios escalable que permita la gestión de usuarios, clubes, jugadores y mercados de fichajes en tiempo real.
 
-**Objetivos**
-- Proveer un entorno robusto basado en microservicios y escalable.
-- Simular un mercado de fichajes realista con presupuestos (RP) y restricciones de roster.
-- Ofrecer un sistema automatizado de calendarios y clasificación de ligas.
-- Brindar una experiencia visual de primera clase mediante *Glassmorphism* y componentes inmersivos.
-
-**Motivación**
-*(Por añadir)*
+### Motivación
+*(Por añadir: Puedes detallar aquí tu motivación personal para elegir este proyecto).*
 
 ---
 
 ## ⚙️ Funcionalidades y Tecnologías
 
-### Funcionalidades Principales
-- **Sistema de Ligas y Amigos:** Creación de ligas privadas, invitación mediante enlaces y sistema de peticiones de amistad entre usuarios.
-- **Mercado de Fichajes:** Fichaje de agentes libres o negociaciones directas con otros managers usando Riot Points (RP).
-- **Control de Roster:** Algoritmos a nivel de BD y aplicación que garantizan plantillas válidas (máx. 2 jugadores por rol: TOP, JUNGLE, MID, ADC, SUPPORT).
-- **Dashboard y Estadísticas:** Panel central con información económica, últimos partidos, clasificación e invitaciones pendientes.
-- **Gestión Automatizada de Partidos:** Al finalizar un partido, los equipos ganan/pierden RP y su posición en la clasificación se actualiza automáticamente a través de Triggers en la BD.
+### Funcionalidades Implementadas
+- **Sistema de Autenticación y Autorización**: Registro seguro con JWT, roles de usuario y permisos granulares. Panel de administrador para control total.
+- **Gestión de Clubes**: Creación de clubes, personalización (logo, región) y gestión del presupuesto (Riot Points - RP).
+- **Mercado de Fichajes**: 
+  - Mercado de agentes libres con subastas y pujas en tiempo real.
+  - Sistema de negociación e intercambio de jugadores entre clubes.
+- **Gestión de Ligas**: 
+  - Creación de ligas privadas con enlaces o códigos de invitación.
+  - Simulación de jornadas y actualización de la clasificación (Standings).
+- **Sistema de Torneos**: Generación automática de emparejamientos y resolución de partidos simulados por estadísticas.
+- **Social**: Sistema de solicitudes de amistad entre usuarios.
 
-### Stack Tecnológico
-- **Frontend:** React 18, React Router v6, Bootstrap 5 (Modo Oscuro Glassmorphism), Axios, SweetAlert2.
-- **Backend (Microservicios):** Java 21, Spring Boot 3, Spring Cloud Gateway, Eureka Server, Spring Security (JWT).
-- **Microservicios Implementados:** `api-gateway`, `auth-service`, `club-service`, `league-service`, `transfer-service`.
-- **Bases de Datos:** MySQL 8, Flyway (Control de versiones y migraciones).
-- **Despliegue:** Docker, Azure Container Apps, Azure Flexible Server MySQL.
+### Tecnologías Utilizadas
+**Backend (Microservicios):**
+- Java 17 + Spring Boot 3
+- Spring Cloud Gateway y Eureka Server para el enrutamiento y registro de servicios.
+- Spring Security + JWT
+- Spring Data JPA + Hibernate
+- Bases de datos PostgreSQL (una por microservicio)
+
+**Frontend:**
+- React.js + Vite
+- React Router DOM
+- React Bootstrap (UI dinámica y responsive)
+- Axios (Integración de API)
+
+**Infraestructura y Despliegue:**
+- Docker y Docker Compose (Entornos locales)
+- Azure Container Apps y Azure Container Registry (Entornos de producción)
+- GitHub Actions (CI/CD)
 
 ---
 
 ## 🛠️ Guía de Instalación
 
-El proyecto se encuentra totalmente contenedorizado, permitiendo un fácil despliegue local o en la nube.
+Para ejecutar el proyecto en local, necesitarás tener instalado **Docker**, **Docker Compose** y **Node.js**.
 
-### Requisitos Previos
-- Docker y Docker Compose instalados.
-- Node.js (Solo si deseas ejecutar el frontend nativamente).
-- Git.
-
-### Instalación Local
 1. **Clonar el repositorio:**
    ```bash
-   git clone https://github.com/PabloPavla/garcia_palacios_TFG.git
-   cd garcia_palacios_TFG
+   git clone <tu-repositorio>
+   cd proyecto_TFG
    ```
 
-2. **Levantar el Backend y Bases de Datos (Vía Docker Compose):**
+2. **Levantar la base de datos y la infraestructura backend:**
    ```bash
-   cd docker
+   cd backend
    docker-compose up -d
    ```
-   *Esto levantará las bases de datos de todos los microservicios y aplicará las migraciones SQL con Flyway.*
+   *Nota: Esto iniciará todas las bases de datos y los microservicios en sus respectivos contenedores.*
 
-3. **Ejecutar Microservicios:**
-   Abre el proyecto en tu IDE favorito (IntelliJ, VSCode) y lanza los servicios en el siguiente orden:
-   `eureka-server` -> `api-gateway` -> `auth-service`, `club-service`, `league-service`, `transfer-service`.
-
-4. **Levantar el Frontend:**
+3. **Iniciar el Frontend:**
+   Abre una nueva terminal:
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
-   La aplicación estará disponible en `https://frontend.happyrock-6898a204.spaincentral.azurecontainerapps.io/login`.
+
+4. **Acceder a la aplicación:**
+   - **Local:** Abre tu navegador en `http://localhost:5173`.
+   - **Producción:** La aplicación está desplegada y disponible en `https://frontend.happyrock-6898a204.spaincentral.azurecontainerapps.io/login`.
 
 ---
 
 ## 🎮 Guía de Uso
 
-1. **Registro:** Crea una cuenta o pide a un amigo su enlace de invitación a una liga.
-2. **Dashboard:** Crea tu club de esports, diseña su nombre y acrónimo.
-3. **Fichajes:** Accede al *Mercado* para contratar jugadores libres a cambio de RP, o negocia con otros usuarios en *Traspasos*.
-4. **Ligas:** Organiza partidos contra otros miembros de tu liga. Al ganar, tu equipo subirá en la clasificación y ganarás Riot Points para nuevos fichajes.
-5. **Configuración:** Utiliza el panel de Perfil para cambiar tu avatar de invocador.
+1. **Registro e Inicio de Sesión**: Crea una nueva cuenta de usuario o inicia sesión con credenciales de administrador.
+2. **Tu Primer Club**: Al entrar, se te pedirá crear o unirte a un club. Escoge un nombre y la región de tu equipo.
+3. **Explorar el Mercado**: Visita la sección de "Mercado" para visualizar agentes libres y empezar a pujar por los mejores jugadores usando tu presupuesto inicial.
+4. **Competir**: Únete a una liga mediante un enlace de invitación o crea la tuya propia. Revisa el calendario de partidos y asegura que tus jugadores están listos para competir.
 
 ---
 
 ## 🔗 Enlaces de Interés
 
-- **Documentación del Proyecto:** *(Por añadir)*
-- **Diseño de Interfaz (Figma):** *(Por añadir)*
+- **Enlace a la documentación**: *(Por añadir)*
+- **Enlace al diseño en Figma**: *(Por añadir)*
 
 ---
 
-## 🎯 Conclusión
+## 🏁 Conclusión
 
-El desarrollo de *Clash Manager* ha supuesto un reto arquitectónico considerable al aplicar patrones avanzados como Microservicios, API Gateway y Service Discovery, demostrando la viabilidad de aplicaciones complejas con un stack tecnológico de última generación.
-
----
-
-## 🤝 Contribuciones y Referencias
-
-*(Por añadir)*
+Clash Manager representa la culminación de los estudios de Desarrollo de Aplicaciones Web, integrando de manera exitosa múltiples tecnologías modernas en una arquitectura robusta. A pesar de los desafíos técnicos asociados a los sistemas distribuidos y la infraestructura en la nube, el resultado es una plataforma funcional, escalable y con un gran potencial de expansión.
 
 ---
 
-## 📄 Licencias
+## 🤝 Contribuciones y Licencias
 
-Este proyecto está bajo licencia MIT. Eres libre de utilizar y modificar el código de acuerdo a los términos de la misma. Todos los derechos sobre marcas registradas e imágenes de *League of Legends* pertenecen a Riot Games.
+*(Por añadir: Contribuciones, agradecimientos y referencias)*
+
+Este proyecto se distribuye bajo la licencia **MIT**. Puedes consultar el archivo `LICENSE` para más detalles.
 
 ---
 
 ## 📬 Contacto
 
-Si tienes alguna duda o sugerencia, no dudes en contactarme:
-- **Email:** [pablogarpa16@gmail.com](mailto:pablogarpa16@gmail.com)
-- **GitHub:** [PabloPavla](https://github.com/PabloPavla)
+Para cualquier consulta relacionada con el desarrollo de este proyecto, puedes contactarme en:
+
+✉️ **Email:** pablogarpa16@gmail.com
