@@ -26,7 +26,7 @@
 El crecimiento de los eSports requiere de herramientas y plataformas cada vez más complejas. El objetivo principal de este proyecto es aplicar los conocimientos adquiridos durante el ciclo de DAW para construir una arquitectura de microservicios escalable que permita la gestión de usuarios, clubes, jugadores y mercados de fichajes en tiempo real.
 
 ### Motivación
-*(Por añadir: Puedes detallar aquí tu motivación personal para elegir este proyecto).*
+*La motivacion principal para llevar acabo este proyecto fue poner a prubea mis conocimientos adquiridos a lo largo de este curso y intentar hacer algo relacionado con unas de mis aficiones como son los videojuegos*
 
 ---
 
@@ -113,7 +113,7 @@ Para ejecutar el proyecto en local, necesitarás tener instalado **Docker**, **D
     2. Ejecuta `npm install` para instalar las dependencias.
     3. Ejecuta `npm run dev` para lanzar el servidor.
     4. Abre tu navegador web en `http://localhost:4321`.
-- **Enlace al diseño en Figma**: *(Por añadir)*
+- **Enlace al diseño en Figma**: *https://www.figma.com/design/t1wpxFEvD6GjgXpsNC6oGs/Figma_clashmanager?node-id=0-1&m=dev&t=vBPo4iQj6jkNgOd2-1*
 
 ---
 
