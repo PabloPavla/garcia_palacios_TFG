@@ -19,6 +19,7 @@ spring:
               - "http://localhost:3000"     # Alternativa CRA
               - "https://*.vercel.app"      # Producción Vercel
               - "https://*.azurecontainerapps.io" # Producción Azure Container Apps
+              - "https://*.azurewebsites.net" # Producción Azure Web Apps
             allowedMethods:
               - GET
               - POST

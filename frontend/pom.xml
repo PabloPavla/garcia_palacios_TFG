@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.tfg.esports</groupId>
+    <artifactId>frontend-jib</artifactId>
+    <version>1.0.0</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <from>
+                        <image>nginx:alpine</image>
+                    </from>
+                    <to>
+                        <image>acrclashmanager70551.azurecr.io/frontend:latest</image>
+                    </to>
+                    <container>
+                        <entrypoint>
+                            <arg>nginx</arg>
+                            <arg>-g</arg>
+                            <arg>daemon off;</arg>
+                        </entrypoint>
+                        <ports>
+                            <port>80</port>
+                        </ports>
+                    </container>
+                    <extraDirectories>
+                        <paths>
+                            <path>
+                                <from>dist</from>
+                                <into>/usr/share/nginx/html</into>
+                            </path>
+                            <path>
+                                <from>nginx-config</from>
+                                <into>/etc/nginx/conf.d</into>
+                            </path>
+                        </paths>
+                        <permissions>
+                            <permission>
+                                <file>/etc/nginx/conf.d/default.conf</file>
+                                <mode>644</mode>
+                            </permission>
+                        </permissions>
+                    </extraDirectories>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

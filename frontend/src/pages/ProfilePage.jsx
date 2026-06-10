@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner, Tab, Nav, Badge, ListGroup, InputGroup } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 import friendService from '../services/friendService';
+import api from '../services/api';
 import './AuthPages.css';
 
 const ProfilePage = () => {
@@ -71,26 +72,12 @@ const ProfilePage = () => {
         setProfileLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8080/auth/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password || undefined,
-                    profilePictureUrl: formData.profilePictureUrl
-                })
+            const { data } = await api.put('/auth/profile', {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password || undefined,
+                profilePictureUrl: formData.profilePictureUrl
             });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Error al actualizar el perfil');
-            }
-
-            const data = await response.json();
             
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('refreshToken', data.refreshToken);

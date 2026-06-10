@@ -227,7 +227,7 @@ public class LeagueService {
      */
     @Transactional(readOnly = true)
     public List<League> getLeaguesByClubId(Long clubId) {
-        return leagueClubRepository.findByIdClubId(clubId)
+        return leagueClubRepository.findByIdClubIdWithLeague(clubId)
                 .stream()
                 .map(LeagueClub::getLeague)
                 .toList();

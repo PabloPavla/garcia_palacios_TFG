@@ -55,4 +55,7 @@ public interface LeagueClubRepository extends JpaRepository<LeagueClub, LeagueCl
      * @return lista de inscripciones
      */
     List<LeagueClub> findByIdClubId(Long clubId);
+
+    @Query("SELECT lc FROM LeagueClub lc JOIN FETCH lc.league WHERE lc.id.clubId = :clubId")
+    List<LeagueClub> findByIdClubIdWithLeague(@org.springframework.data.repository.query.Param("clubId") Long clubId);
 }

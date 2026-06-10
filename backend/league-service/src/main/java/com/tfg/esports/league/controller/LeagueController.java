@@ -141,4 +141,11 @@ public class LeagueController {
         leagueService.deleteLeague(id);
         return ResponseEntity.ok(Map.of("message", "Liga eliminada correctamente"));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleExceptions(Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal Server Error", "message", e.getMessage() != null ? e.getMessage() : "Unknown"));
+    }
 }

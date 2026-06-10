@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Modal, Form }
 import { useParams } from 'react-router-dom';
 import clubService from '../services/clubService';
 import transferService from '../services/transferService';
+import api from '../services/api';
 
 const getRoleColor = (role) => {
     switch (role) {
@@ -71,13 +72,10 @@ const MarketPage = () => {
                 let activeId = null;
                 for (const c of clubs) {
                     try {
-                        const res = await fetch(`http://localhost:8080/leagues/club/${c.id}`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data.some(l => l.id == leagueId)) {
-                                activeId = c.id;
-                                break;
-                            }
+                        const { data } = await api.get(`/leagues/by-club?clubId=${c.id}`);
+                        if (data.some(l => l.id == leagueId)) {
+                            activeId = c.id;
+                            break;
                         }
                     } catch (e) {}
                 }
