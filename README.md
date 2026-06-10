@@ -107,7 +107,12 @@ Para ejecutar el proyecto en local, necesitarás tener instalado **Docker**, **D
 
 ## 🔗 Enlaces de Interés
 
-- **Enlace a la documentación**: *(Por añadir)*
+- **Enlace a la documentación**: La documentación interactiva (Astro Starlight) se entrega por separado del código fuente.
+  - Para iniciarla localmente:
+    1. Descomprime o abre la carpeta `docs` en tu terminal.
+    2. Ejecuta `npm install` para instalar las dependencias.
+    3. Ejecuta `npm run dev` para lanzar el servidor.
+    4. Abre tu navegador web en `http://localhost:4321`.
 - **Enlace al diseño en Figma**: *(Por añadir)*
 
 ---
